@@ -1,196 +1,240 @@
-// Sample hotels for Asaba (V1 demo data)
-const hotels = [
-  {
-    id: 1,
-    name: "Afro View Hotel",
-    type: "business",
-    price: 28000,
-    rating: 4.5,
-    amenities: ["wifi", "breakfast", "parking"],
-    image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600",
-    description: "Modern business hotel with reliable Wi-Fi and conference facilities. Ideal for short stays.",
-    rooms: [
-      { name: "Standard Room", price: 25000 },
-      { name: "Deluxe Room", price: 28000 },
-      { name: "Executive Suite", price: 45000 }
-    ]
-  },
-  {
-    id: 2,
-    name: "Delta Pearl Guest House",
-    type: "family",
-    price: 22000,
-    rating: 4.2,
-    amenities: ["wifi", "pool", "breakfast"],
-    image: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=600",
-    description: "Family-friendly with pool and spacious rooms. Perfect for weekend getaways.",
-    rooms: [
-      { name: "Family Room", price: 22000 },
-      { name: "Double Room", price: 18000 }
-    ]
-  },
-  {
-    id: 3,
-    name: "Asaba Grand Suites",
-    type: "luxury",
-    price: 55000,
-    rating: 4.8,
-    amenities: ["wifi", "pool", "breakfast", "parking"],
-    image: "https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=600",
-    description: "Premium location near major event venues. High availability during peak weekends.",
-    rooms: [
-      { name: "Deluxe Suite", price: 55000 },
-      { name: "Presidential Suite", price: 95000 }
-    ]
-  }
-];
-
-let currentHotel = null;
-let bookings = JSON.parse(localStorage.getItem('cn7_bookings') || '[]');
-
-// Navigation
-function showSection(id) {
-  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  if (id === 'hotels') renderHotels(hotels);
-  if (id === 'hotel-dashboard') renderHotelBookings();
-  if (id === 'admin') updateAdmin();
+:root {
+  --blue: #1E4ED8;
+  --green: #10B981;
+  --gold: #F59E0B;
+  --dark: #111827;
+  --light: #F3F4F6;
 }
 
-// Search & Filters
-function searchHotels() {
-  showSection('hotels');
-  renderHotels(hotels);
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Poppins', sans-serif;
+  background: var(--light);
+  color: var(--dark);
+  line-height: 1.5;
 }
 
-function applyFilters() {
-  const type = document.getElementById('filter-type').value;
-  const wifi = document.getElementById('filter-wifi').checked;
-  const pool = document.getElementById('filter-pool').checked;
-  const breakfast = document.getElementById('filter-breakfast').checked;
-
-  let filtered = hotels.filter(h => {
-    if (type && h.type !== type) return false;
-    if (wifi && !h.amenities.includes('wifi')) return false;
-    if (pool && !h.amenities.includes('pool')) return false;
-    if (breakfast && !h.amenities.includes('breakfast')) return false;
-    return true;
-  });
-  renderHotels(filtered);
+/* NAVBAR */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.9rem 1.2rem;
+  background: var(--dark);
+  color: white;
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
-function renderHotels(list) {
-  const container = document.getElementById('hotel-list');
-  container.innerHTML = list.map(h => `
-    <div class="hotel-card" onclick="showHotelDetail(${h.id})">
-      <img src="${h.image}" alt="${h.name}">
-      <div class="hotel-card-content">
-        <h3>${h.name}</h3>
-        <div>★ ${h.rating} · ${h.type}</div>
-        <div class="price">From ₦${h.price.toLocaleString()} / night</div>
-      </div>
-    </div>
-  `).join('');
+.nav-brand {
+  font-size: 1.5rem;
+  font-weight: 700;
+  cursor: pointer;
 }
 
-// Hotel Detail + Booking
-function showHotelDetail(id) {
-  currentHotel = hotels.find(h => h.id === id);
-  showSection('hotel-detail');
-  document.getElementById('detail-content').innerHTML = `
-    <img src="${currentHotel.image}" style="width:100%; height:250px; object-fit:cover; border-radius:12px; margin-bottom:1rem;">
-    <h2>${currentHotel.name}</h2>
-    <p>★ ${currentHotel.rating} · ${currentHotel.type.charAt(0).toUpperCase() + currentHotel.type.slice(1)}</p>
-    <p style="margin:1rem 0;">${currentHotel.description}</p>
-    <p><strong>Amenities:</strong> ${currentHotel.amenities.join(', ')}</p>
-    <h3 style="margin-top:1.5rem;">Select a Room</h3>
-    ${currentHotel.rooms.map((r, i) => `
-      <div class="room-option">
-        <div>
-          <strong>${r.name}</strong><br>
-          ₦${r.price.toLocaleString()} / night
-        </div>
-        <button class="primary" onclick="bookRoom(${i})">Book Now</button>
-      </div>
-    `).join('')}
-    <p style="margin-top:1rem; color:#64748b; font-size:0.9rem;">
-      V1: Pay at hotel. Free cancellation up to 24 hours before check-in.
-    </p>
-  `;
+.logo-text { color: white; }
+.logo-pin { color: var(--gold); }
+
+.nav-links button {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  margin-left: 0.9rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
 }
 
-function bookRoom(roomIndex) {
-  const room = currentHotel.rooms[roomIndex];
-  const name = prompt("Your full name:");
-  const phone = prompt("Phone number (for OTP confirmation):");
-  if (!name || !phone) return;
+.nav-links button:hover { color: white; }
 
-  const booking = {
-    id: Date.now(),
-    hotelId: currentHotel.id,
-    hotelName: currentHotel.name,
-    room: room.name,
-    price: room.price,
-    guestName: name,
-    phone: phone,
-    status: "pending",
-    date: new Date().toLocaleString()
-  };
-  bookings.push(booking);
-  localStorage.setItem('cn7_bookings', JSON.stringify(bookings));
-  alert(`Booking request sent!\n\n${currentHotel.name} - ${room.name}\nStatus: Pending hotel confirmation.\nYou will receive confirmation shortly.`);
-  showSection('home');
+/* SECTIONS */
+.section {
+  display: none;
+  padding: 1.5rem 1.2rem;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+.section.active { display: block; }
+
+/* HERO */
+.hero {
+  text-align: center;
+  padding: 2.8rem 1.2rem;
+  background: linear-gradient(135deg, var(--blue), #1e3a8a);
+  color: white;
+  border-radius: 18px;
+  margin-bottom: 2rem;
 }
 
-// Hotel Dashboard
-function hotelLogin() {
-  document.getElementById('hotel-login').style.display = 'none';
-  document.getElementById('hotel-panel').style.display = 'block';
-  renderHotelBookings();
+.hero h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.3rem;
 }
 
-function renderHotelBookings() {
-  const list = document.getElementById('booking-list');
-  if (bookings.length === 0) {
-    list.innerHTML = '<p>No bookings yet.</p>';
-    return;
-  }
-  list.innerHTML = bookings.map(b => `
-    <div style="border:1px solid #e2e8f0; padding:1rem; border-radius:8px; margin-bottom:1rem;">
-      <strong>${b.guestName}</strong> · ${b.phone}<br>
-      ${b.hotelName} — ${b.room}<br>
-      ₦${b.price.toLocaleString()} · ${b.date}<br>
-      Status: <strong>${b.status}</strong><br>
-      ${b.status === 'pending' ? `
-        <button class="success" onclick="updateBooking(${b.id}, 'confirmed')">Confirm</button>
-        <button class="danger" onclick="updateBooking(${b.id}, 'rejected')">Reject</button>
-      ` : ''}
-    </div>
-  `).join('');
+.tagline {
+  color: var(--gold);
+  font-weight: 500;
+  margin-bottom: 1.6rem;
 }
 
-function updateBooking(id, status) {
-  bookings = bookings.map(b => b.id === id ? {...b, status} : b);
-  localStorage.setItem('cn7_bookings', JSON.stringify(bookings));
-  renderHotelBookings();
-  updateAdmin();
-  alert(`Booking ${status}!`);
+.search-box {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  justify-content: center;
+  background: white;
+  padding: 1rem;
+  border-radius: 14px;
+  box-shadow: 0 12px 25px rgba(0,0,0,0.12);
 }
 
-// Admin
-function updateAdmin() {
-  document.getElementById('total-bookings').textContent = bookings.length;
-  const confirmed = bookings.filter(b => b.status === 'confirmed').length;
-  const rate = bookings.length ? Math.round((confirmed / bookings.length) * 100) : 0;
-  document.getElementById('confirmed-rate').textContent = rate + '%';
-  document.getElementById('admin-activity').innerHTML = bookings.slice(-5).reverse().map(b => 
-    `<div style="padding:0.5rem 0; border-bottom:1px solid #e2e8f0;">
-      ${b.guestName} booked ${b.hotelName} — <strong>${b.status}</strong>
-    </div>`
-  ).join('') || '<p>No activity yet.</p>';
+.search-box input {
+  padding: 0.8rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  min-width: 120px;
+  flex: 1;
 }
 
-// Init
-document.addEventListener('DOMContentLoaded', () => {
-  showSection('home');
-});
+.btn-primary {
+  background: var(--green);
+  color: white;
+  border: none;
+  padding: 0.8rem 1.4rem;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* FEATURES */
+.features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 1rem;
+}
+
+.feature {
+  background: white;
+  padding: 1.3rem 1rem;
+  border-radius: 14px;
+  text-align: center;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+}
+
+.feature-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 0.8rem;
+  font-size: 1.2rem;
+}
+.feature-icon.blue { background: #dbeafe; }
+.feature-icon.green { background: #d1fae5; }
+.feature-icon.gold { background: #fef3c7; }
+
+.feature h3 { font-size: 0.95rem; margin-bottom: 0.2rem; }
+.feature p { color: #64748b; font-size: 0.8rem; }
+
+/* HOTEL GRID */
+.hotel-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1.2rem;
+  margin-top: 1.2rem;
+}
+
+.hotel-card {
+  background: white;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 3px 12px rgba(0,0,0,0.06);
+  cursor: pointer;
+}
+
+.hotel-card img {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  background: #e2e8f0;
+}
+
+.hotel-card-content { padding: 1rem; }
+.price { color: var(--green); font-weight: 600; margin-top: 0.4rem; }
+
+/* FILTERS */
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  align-items: center;
+  background: white;
+  padding: 0.9rem;
+  border-radius: 12px;
+  margin-bottom: 1rem;
+}
+
+/* DETAIL & DASHBOARDS */
+.back-btn {
+  background: none;
+  border: none;
+  color: var(--blue);
+  margin-bottom: 1rem;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.card {
+  background: white;
+  padding: 1.4rem;
+  border-radius: 14px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+}
+
+.admin-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.8rem;
+  margin-bottom: 1.5rem;
+}
+
+.stat {
+  background: white;
+  padding: 1.2rem;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+}
+
+.stat span {
+  font-size: 1.6rem;
+  color: var(--blue);
+  display: block;
+}
+
+/* FOOTER */
+footer {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: #64748b;
+  font-size: 0.85rem;
+}
+
+.footer-logo { font-size: 1.3rem; font-weight: 700; margin-bottom: 0.4rem; }
+.founder { color: var(--gold); margin-top: 0.3rem; }
+
+/* MOBILE IMPROVEMENTS */
+@media (max-width: 600px) {
+  .hero h1 { font-size: 1.7rem; }
+  .search-box { flex-direction: column; }
+  .search-box input { width: 100%; }
+  .admin-stats { grid-template-columns: 1fr; }
+  .nav-links button { margin-left: 0.6rem; font-size: 0.82rem; }
+  .features { grid-template-columns: 1fr; }
+}
