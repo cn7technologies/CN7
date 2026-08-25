@@ -16,12 +16,12 @@
     <div class="nav-links">
       <button onclick="showSection('home')">Home</button>
       <button onclick="showSection('hotels')">Hotels</button>
-      <button onclick="showSection('hotel-dashboard')">Hotel Login</button>
-      <button onclick="showSection('admin')">Admin</button>
+      <button onclick="openProtected('hotel')">Hotel</button>
+      <button onclick="openProtected('admin')">Admin</button>
     </div>
   </nav>
 
-  <!-- HOME / SEARCH -->
+  <!-- HOME -->
   <section id="home" class="section active">
     <div class="hero">
       <h1>Connect. Navigate. Stay.</h1>
@@ -53,7 +53,7 @@
     </div>
   </section>
 
-  <!-- HOTEL LISTINGS -->
+  <!-- HOTELS -->
   <section id="hotels" class="section">
     <h2>Hotels in Asaba</h2>
     <div class="filters">
@@ -66,34 +66,27 @@
       <label><input type="checkbox" id="filter-wifi"> Wi-Fi</label>
       <label><input type="checkbox" id="filter-pool"> Pool</label>
       <label><input type="checkbox" id="filter-breakfast"> Breakfast</label>
-      <button class="btn-primary" onclick="applyFilters()">Apply Filters</button>
+      <button class="btn-primary" onclick="applyFilters()">Apply</button>
     </div>
     <div id="hotel-list" class="hotel-grid"></div>
   </section>
 
-  <!-- HOTEL DETAILS + BOOKING -->
+  <!-- HOTEL DETAIL -->
   <section id="hotel-detail" class="section">
-    <button class="back-btn" onclick="showSection('hotels')">← Back to hotels</button>
+    <button class="back-btn" onclick="showSection('hotels')">← Back</button>
     <div id="detail-content"></div>
   </section>
 
   <!-- HOTEL DASHBOARD -->
   <section id="hotel-dashboard" class="section">
     <h2>Hotel Dashboard</h2>
-    <div id="hotel-login" class="card">
-      <p>Simple login for hotel partners<br><small>(Demo: any email + password works)</small></p>
-      <input type="email" id="hotel-email" placeholder="Email">
-      <input type="password" id="hotel-pass" placeholder="Password">
-      <button class="btn-primary" onclick="hotelLogin()">Login</button>
-    </div>
-    <div id="hotel-panel" class="card" style="display:none;">
-      <h3>Pending & Confirmed Bookings</h3>
+    <div id="hotel-panel" class="card">
+      <h3>Bookings</h3>
       <div id="booking-list"></div>
-      <p class="note">Commission summary will appear here (transparent for independent owners).</p>
     </div>
   </section>
 
-  <!-- ADMIN DASHBOARD -->
+  <!-- ADMIN -->
   <section id="admin" class="section">
     <h2>Admin Dashboard</h2>
     <div class="admin-stats">
@@ -101,7 +94,6 @@
       <div class="stat"><span id="confirmed-rate">0%</span><br>Confirmation Rate</div>
       <div class="stat"><span id="active-hotels">3</span><br>Active Hotels</div>
     </div>
-    <h3>Recent Activity</h3>
     <div id="admin-activity" class="card"></div>
   </section>
 
