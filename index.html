@@ -23,15 +23,21 @@
 
   <!-- HOME -->
   <section id="home" class="section active">
-    <div class="hero">
-      <h1>Connect. Navigate. Stay.</h1>
-      <p class="tagline">Hospitality. Perfected.</p>
-      <div class="search-box">
-        <input type="text" id="search-location" value="Asaba" placeholder="Where are you going?">
-        <input type="date" id="checkin">
-        <input type="date" id="checkout">
-        <button class="btn-primary" onclick="searchHotels()">Search Hotels</button>
-      </div>
+    <div class="search-box">
+  <input type="text" id="search-location" value="Asaba" placeholder="Where are you going?">
+  
+  <div class="date-group">
+    <label>Check-in</label>
+    <input type="date" id="checkin">
+  </div>
+  
+  <div class="date-group">
+    <label>Check-out</label>
+    <input type="date" id="checkout">
+  </div>
+  
+  <button class="btn-primary" onclick="searchHotels()">Search Hotels</button>
+</div>
     </div>
 
     <div class="features">
