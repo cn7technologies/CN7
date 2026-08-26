@@ -1,7 +1,14 @@
 const defaultHotels = [
   {
-    id: 1, name: "Afro View Hotel", code: "AFRO", type: "business", price: 28000,
-    rating: 4.6, reviews: 128, area: "GRA", distance: "5 min from Asaba city centre",
+    id: 1,
+    name: "Afro View Hotel",
+    code: "AFRO",
+    type: "business",
+    price: 28000,
+    rating: 4.6,
+    reviews: 128,
+    area: "GRA",
+    distance: "5 min from Asaba city centre",
     amenities: ["Wi-Fi", "Parking", "Breakfast", "Pool"],
     image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600",
     description: "Modern business hotel with reliable Wi-Fi and conference facilities.",
@@ -12,8 +19,15 @@ const defaultHotels = [
     ]
   },
   {
-    id: 2, name: "Delta Pearl Guest House", code: "DELTA", type: "family", price: 22000,
-    rating: 4.3, reviews: 86, area: "NTA", distance: "Near NTA Asaba",
+    id: 2,
+    name: "Delta Pearl Guest House",
+    code: "DELTA",
+    type: "family",
+    price: 22000,
+    rating: 4.3,
+    reviews: 86,
+    area: "NTA",
+    distance: "Near NTA Asaba",
     amenities: ["Wi-Fi", "Pool", "Breakfast", "Parking"],
     image: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=600",
     description: "Comfortable family-friendly guest house with spacious rooms and a pool.",
@@ -23,8 +37,15 @@ const defaultHotels = [
     ]
   },
   {
-    id: 3, name: "Asaba Grand Suites", code: "GRAND", type: "luxury", price: 55000,
-    rating: 4.8, reviews: 204, area: "Mariam Babangida", distance: "Near major event venues",
+    id: 3,
+    name: "Asaba Grand Suites",
+    code: "GRAND",
+    type: "luxury",
+    price: 55000,
+    rating: 4.8,
+    reviews: 204,
+    area: "Mariam Babangida",
+    distance: "Near major event venues",
     amenities: ["Wi-Fi", "Pool", "Breakfast", "Restaurant", "Parking"],
     image: "https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=600",
     description: "Premium suites ideal for events and special occasions.",
@@ -58,8 +79,13 @@ function toggleTheme() {
   document.getElementById('theme-toggle').textContent = next === 'dark' ? '🌙' : '☀️';
 }
 
-function openModal(id) { document.getElementById(id).style.display = 'flex'; }
-function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+function openModal(id) {
+  document.getElementById(id).style.display = 'flex';
+}
+
+function closeModal(id) {
+  document.getElementById(id).style.display = 'none';
+}
 
 function toggleMenu() {
   const links = document.getElementById('nav-links');
@@ -190,6 +216,7 @@ function applyFilters() {
   const pool = document.getElementById('filter-pool').checked;
   const breakfast = document.getElementById('filter-breakfast').checked;
   const parking = document.getElementById('filter-parking').checked;
+
   const filtered = hotels.filter(h => {
     if (type && h.type !== type) return false;
     if (wifi && !h.amenities.includes('Wi-Fi')) return false;
@@ -199,6 +226,24 @@ function applyFilters() {
     return true;
   });
   renderHotels(filtered);
+}
+
+function filterByType(type) {
+  refreshHotels();
+  const filtered = hotels.filter(h => h.type === type);
+  showSection('hotels');
+  renderHotels(filtered);
+
+  // Update the filter dropdown
+  document.getElementById('filter-type').value = type;
+
+  if (filtered.length === 0) {
+    document.getElementById('hotel-list').innerHTML = `
+      <div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--muted)">
+        <h3>No ${type} hotels found</h3>
+        <button class="btn-primary" style="margin-top:1rem" onclick="searchHotels()">Show All Hotels</button>
+      </div>`;
+  }
 }
 
 function renderHotels(list) {
@@ -380,8 +425,17 @@ function submitHotel() {
 
   pendingHotels.push({
     id: Date.now(),
-    name, type, area, price: startingPrice, distance, description,
-    amenities, image, contact, rooms, status: 'pending',
+    name,
+    type,
+    area,
+    price: startingPrice,
+    distance,
+    description,
+    amenities,
+    image,
+    contact,
+    rooms,
+    status: 'pending',
     date: new Date().toLocaleString()
   });
 
@@ -412,9 +466,17 @@ function approveHotel(id) {
   const code = pending.name.replace(/[^A-Za-z]/g, '').slice(0, 5).toUpperCase() || 'HOTEL';
 
   extraHotels.push({
-    id: pending.id, name: pending.name, code, type: pending.type,
-    area: pending.area || 'Asaba', price: pending.price, rating: 4.5, reviews: 0,
-    distance: pending.distance, amenities: pending.amenities, image: pending.image,
+    id: pending.id,
+    name: pending.name,
+    code,
+    type: pending.type,
+    area: pending.area || 'Asaba',
+    price: pending.price,
+    rating: 4.5,
+    reviews: 0,
+    distance: pending.distance,
+    amenities: pending.amenities,
+    image: pending.image,
     description: pending.description,
     rooms: pending.rooms && pending.rooms.length ? pending.rooms : [{ name: 'Standard Room', price: pending.price }]
   });
