@@ -22,13 +22,14 @@
     </div>
   </nav>
 
+  <!-- HOME -->
   <section id="home" class="section active">
     <div class="hero">
       <h1>Connect. Navigate. Stay.</h1>
       <p class="tagline">Hospitality. Perfected.</p>
-      <p class="hero-desc">Find, compare and book trusted hotels in Asaba in one place.</p>
+      <p class="hero-desc">Find hotels in Asaba by area — GRA, NTA, DBS Road, Mariam Babangida and more.</p>
       <div class="search-box">
-        <input type="text" id="search-location" value="Asaba" placeholder="Where are you staying?">
+        <input type="text" id="search-location" value="Asaba" placeholder="Search area (e.g. GRA, NTA, DBS Road)">
         <div class="date-group">
           <label>Check-in</label>
           <input type="date" id="checkin">
@@ -47,6 +48,7 @@
     </div>
   </section>
 
+  <!-- HOTELS -->
   <section id="hotels" class="section">
     <h2>Trusted Hotels in Asaba</h2>
     <div class="filters">
@@ -65,11 +67,13 @@
     <div id="hotel-list" class="hotel-grid"></div>
   </section>
 
+  <!-- HOTEL DETAIL -->
   <section id="hotel-detail" class="section">
     <button class="back-btn" onclick="showSection('hotels')">← Back to hotels</button>
     <div id="detail-content"></div>
   </section>
 
+  <!-- LIST YOUR HOTEL -->
   <section id="list-hotel" class="section">
     <h2>List Your Hotel on CN7</h2>
     <p class="page-note">Submit your hotel for review. After approval, guests can find and book you.</p>
@@ -82,7 +86,8 @@
         <option value="luxury">Luxury</option>
         <option value="event">Event</option>
       </select>
-      <input type="text" id="new-hotel-distance" class="auth-input" placeholder="Location (e.g. 5 min from city centre)">
+      <input type="text" id="new-hotel-area" class="auth-input" placeholder="Area (e.g. GRA, NTA, DBS Road, Mariam Babangida)">
+      <input type="text" id="new-hotel-distance" class="auth-input" placeholder="Short location note (e.g. 5 min from city centre)">
       <textarea id="new-hotel-desc" class="auth-input" rows="3" placeholder="Short description"></textarea>
 
       <p class="form-label">Rooms & Prices</p>
@@ -114,11 +119,13 @@
     </div>
   </section>
 
+  <!-- MY BOOKINGS -->
   <section id="my-bookings" class="section">
     <h2>My Bookings</h2>
     <div id="my-bookings-list" class="card"></div>
   </section>
 
+  <!-- HOTEL DASHBOARD -->
   <section id="hotel-dashboard" class="section">
     <h2 id="hotel-dashboard-title">Hotel Dashboard</h2>
     <div class="card">
@@ -127,23 +134,32 @@
     </div>
   </section>
 
+  <!-- ADMIN -->
   <section id="admin" class="section">
     <h2>Admin Dashboard</h2>
     <div class="admin-stats">
       <div class="stat"><span id="total-bookings">0</span><small>Total Bookings</small></div>
       <div class="stat"><span id="confirmed-rate">0%</span><small>Confirmation Rate</small></div>
-      <div class="stat"><span id="active-hotels">3</span><small>Active Hotels</small></div>
+      <div class="stat"><span id="active-hotels">0</span><small>Active Hotels</small></div>
     </div>
+
     <div class="card" style="margin-bottom:1.5rem;">
       <h3>Pending Hotel Applications</h3>
       <div id="pending-hotels"></div>
     </div>
+
+    <div class="card" style="margin-bottom:1.5rem;">
+      <h3>Active Hotels</h3>
+      <div id="active-hotels-list"></div>
+    </div>
+
     <div class="card">
       <h3>Recent Activity</h3>
       <div id="admin-activity"></div>
     </div>
   </section>
 
+  <!-- MODALS -->
   <div id="auth-modal" class="modal">
     <div class="modal-content">
       <h2>Sign In</h2>
