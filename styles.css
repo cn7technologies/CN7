@@ -44,8 +44,9 @@ body {
 }
 
 .nav-logo {
-  height: 68px;
+  height: 95px;
   width: auto;
+  max-width: 260px;
   object-fit: contain;
 }
 
