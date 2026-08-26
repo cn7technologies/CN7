@@ -47,7 +47,6 @@ body {
   cursor: pointer;
   color: white;
 }
-
 .logo-pin { color: var(--gold); }
 
 .nav-links {
@@ -65,10 +64,7 @@ body {
   cursor: pointer;
   padding: 0.4rem 0.55rem;
 }
-
 .nav-links button:hover { color: white; }
-
-#theme-toggle { font-size: 1.15rem; }
 
 /* SECTIONS */
 .section {
@@ -88,19 +84,8 @@ body {
   border-radius: 20px;
   margin-bottom: 2.2rem;
 }
-
-.hero h1 {
-  font-size: 2.2rem;
-  font-weight: 700;
-  margin-bottom: 0.3rem;
-}
-
-.tagline {
-  color: var(--gold);
-  font-weight: 500;
-  margin-bottom: 0.8rem;
-}
-
+.hero h1 { font-size: 2.2rem; font-weight: 700; margin-bottom: 0.3rem; }
+.tagline { color: var(--gold); font-weight: 500; margin-bottom: 0.8rem; }
 .hero-desc {
   font-size: 1.05rem;
   opacity: 0.95;
@@ -120,32 +105,25 @@ body {
   border-radius: 16px;
   max-width: 800px;
   margin: 0 auto;
-  box-shadow: 0 15px 30px rgba(0,0,0,0.2);
 }
-
 .search-box input[type="text"] {
   flex: 1;
   min-width: 160px;
   padding: 0.85rem 1rem;
   border: 1px solid #e2e8f0;
   border-radius: 10px;
-  font-size: 1rem;
   color: #1e293b;
 }
-
 .date-group {
   display: flex;
   flex-direction: column;
   min-width: 140px;
 }
-
 .date-group label {
   font-size: 0.75rem;
   color: #64748b;
   margin-bottom: 4px;
-  font-weight: 500;
 }
-
 .date-group input {
   padding: 0.75rem;
   border: 1px solid #e2e8f0;
@@ -162,8 +140,8 @@ body {
   font-weight: 600;
   cursor: pointer;
 }
-
 .btn-primary:hover { background: #059669; }
+.btn-primary.full { width: 100%; }
 
 /* FEATURES */
 .features {
@@ -171,7 +149,6 @@ body {
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 1.2rem;
 }
-
 .feature {
   background: var(--card);
   border: 1px solid var(--border);
@@ -179,19 +156,17 @@ body {
   border-radius: 16px;
   text-align: center;
 }
-
 .feature-icon { font-size: 1.6rem; margin-bottom: 0.8rem; }
 .feature h3 { font-size: 1.05rem; margin-bottom: 0.3rem; }
 .feature p { color: var(--muted); font-size: 0.9rem; }
 
-/* HOTEL GRID */
+/* HOTEL CARDS */
 .hotel-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
   gap: 1.4rem;
   margin-top: 1.5rem;
 }
-
 .hotel-card {
   background: var(--card);
   border: 1px solid var(--border);
@@ -200,39 +175,17 @@ body {
   cursor: pointer;
   transition: 0.2s;
 }
-
 .hotel-card:hover { transform: translateY(-5px); }
-
 .hotel-card img {
   width: 100%;
   height: 180px;
   object-fit: cover;
 }
-
 .hotel-card-body { padding: 1.2rem; }
-
 .hotel-card h3 { font-size: 1.15rem; margin-bottom: 0.4rem; }
-
-.meta {
-  font-size: 0.9rem;
-  color: var(--muted);
-  margin-bottom: 0.35rem;
-}
-
-.price {
-  color: var(--green);
-  font-weight: 600;
-  font-size: 1.15rem;
-  margin: 0.7rem 0;
-}
-
-.amenities {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-  margin: 0.8rem 0;
-}
-
+.meta { font-size: 0.9rem; color: var(--muted); margin-bottom: 0.35rem; }
+.price { color: var(--green); font-weight: 600; font-size: 1.15rem; margin: 0.7rem 0; }
+.amenities { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0.8rem 0; }
 .amenity {
   background: rgba(16, 185, 129, 0.12);
   color: var(--green);
@@ -240,16 +193,13 @@ body {
   border-radius: 6px;
   font-size: 0.8rem;
 }
-
 .verified {
   display: inline-block;
   background: var(--primary);
   color: white;
   font-size: 0.75rem;
-  font-weight: 500;
   padding: 0.3rem 0.7rem;
   border-radius: 20px;
-  margin-top: 0.4rem;
 }
 
 /* FILTERS */
@@ -274,14 +224,12 @@ body {
   margin-bottom: 1.2rem;
   cursor: pointer;
 }
-
 #detail-content {
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 16px;
   padding: 1.6rem;
 }
-
 .room-card {
   border: 1px solid var(--border);
   border-radius: 12px;
@@ -299,14 +247,12 @@ body {
   border-radius: 16px;
   padding: 1.5rem;
 }
-
 .admin-stats {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 1rem;
   margin-bottom: 1.8rem;
 }
-
 .stat {
   background: var(--card);
   border: 1px solid var(--border);
@@ -314,51 +260,71 @@ body {
   padding: 1.4rem;
   text-align: center;
 }
-
 .stat span {
   display: block;
   font-size: 1.8rem;
   color: var(--primary);
   font-weight: 700;
 }
+.stat small { color: var(--muted); font-size: 0.85rem; }
 
-.stat small {
-  color: var(--muted);
-  font-size: 0.85rem;
+/* STATUS BADGES */
+.status {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
 }
+.status.requested { background: #fef3c7; color: #92400e; }
+.status.confirmed { background: #d1fae5; color: #065f46; }
+.status.rejected { background: #fee2e2; color: #991b1b; }
 
-/* AUTH MODAL */
+/* MODALS */
 .modal {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0,0,0,0.65);
-  display: flex;
+  background: rgba(0,0,0,0.7);
+  display: none;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 9999;
+  padding: 1rem;
 }
-
 .modal-content {
   background: var(--card);
   padding: 2rem;
   border-radius: 16px;
-  width: 90%;
+  width: 100%;
   max-width: 400px;
   border: 1px solid var(--border);
 }
-
+.modal-sub {
+  color: var(--muted);
+  margin-bottom: 1.2rem;
+  font-size: 0.95rem;
+}
 .auth-input {
   width: 100%;
   padding: 0.9rem 1rem;
-  margin-bottom: 0.8rem;
+  margin-bottom: 0.9rem;
   border: 1px solid var(--border);
   border-radius: 10px;
   background: var(--bg);
   color: var(--text);
   font-size: 1rem;
+}
+.btn-cancel {
+  width: 100%;
+  margin-top: 0.8rem;
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 0.7rem;
 }
 
 /* FOOTER */
@@ -368,7 +334,6 @@ footer {
   color: var(--muted);
   font-size: 0.9rem;
 }
-
 .footer-logo {
   font-size: 1.4rem;
   font-weight: 700;
@@ -381,5 +346,4 @@ footer {
   .search-box { flex-direction: column; }
   .date-group, .btn-primary { width: 100%; }
   .admin-stats { grid-template-columns: 1fr; }
-  .nav-links button { font-size: 0.8rem; }
 }
