@@ -8,8 +8,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-
-  <!-- NAVBAR -->
   <nav class="navbar">
     <div class="nav-brand" onclick="showSection('home')">
       <span class="logo-text">CN</span><span class="logo-pin">7</span>
@@ -17,6 +15,7 @@
     <div class="nav-links">
       <button onclick="showSection('home')">Home</button>
       <button onclick="showSection('hotels')">Hotels</button>
+      <button onclick="showSection('list-hotel')">List Your Hotel</button>
       <button onclick="showSection('my-bookings')" id="my-bookings-btn" style="display:none;">My Bookings</button>
       <button onclick="openHotelLogin()">Hotel</button>
       <button onclick="openAdminLogin()">Admin</button>
@@ -31,7 +30,6 @@
       <h1>Connect. Navigate. Stay.</h1>
       <p class="tagline">Hospitality. Perfected.</p>
       <p class="hero-desc">Find, compare and book trusted hotels in Asaba in one place.</p>
-
       <div class="search-box">
         <input type="text" id="search-location" value="Asaba" placeholder="Where are you staying?">
         <div class="date-group">
@@ -45,23 +43,10 @@
         <button class="btn-primary" onclick="searchHotels()">Search Hotels</button>
       </div>
     </div>
-
     <div class="features">
-      <div class="feature">
-        <div class="feature-icon">⚡</div>
-        <h3>Fast for Business</h3>
-        <p>Quick search and reliable confirmation</p>
-      </div>
-      <div class="feature">
-        <div class="feature-icon">👨‍👩‍👧‍👦</div>
-        <h3>Family Friendly</h3>
-        <p>Clear filters and transparent pricing</p>
-      </div>
-      <div class="feature">
-        <div class="feature-icon">📍</div>
-        <h3>Event Ready</h3>
-        <p>Easy availability near venues</p>
-      </div>
+      <div class="feature"><div class="feature-icon">⚡</div><h3>Fast for Business</h3><p>Quick search and reliable confirmation</p></div>
+      <div class="feature"><div class="feature-icon">👨‍👩‍👧‍👦</div><h3>Family Friendly</h3><p>Clear filters and transparent pricing</p></div>
+      <div class="feature"><div class="feature-icon">📍</div><h3>Event Ready</h3><p>Easy availability near venues</p></div>
     </div>
   </section>
 
@@ -90,6 +75,43 @@
     <div id="detail-content"></div>
   </section>
 
+  <!-- LIST YOUR HOTEL -->
+  <section id="list-hotel" class="section">
+    <h2>List Your Hotel on CN7</h2>
+    <p style="color:var(--muted); margin-bottom:1.5rem;">Submit your hotel for review. After approval, guests will be able to find and book you.</p>
+    <div class="card">
+      <input type="text" id="new-hotel-name" class="auth-input" placeholder="Hotel Name">
+      <select id="new-hotel-type" class="auth-input">
+        <option value="">Hotel Type</option>
+        <option value="business">Business</option>
+        <option value="family">Family</option>
+        <option value="luxury">Luxury</option>
+        <option value="event">Event</option>
+      </select>
+      <input type="number" id="new-hotel-price" class="auth-input" placeholder="Starting price per night (₦)">
+      <input type="text" id="new-hotel-distance" class="auth-input" placeholder="Location / Distance (e.g. 5 min from city centre)">
+      <textarea id="new-hotel-desc" class="auth-input" rows="3" placeholder="Short description of your hotel"></textarea>
+
+      <p style="margin:0.8rem 0 0.5rem;"><strong>Amenities</strong></p>
+      <div class="amenity-checks">
+        <label><input type="checkbox" value="Wi-Fi"> Wi-Fi</label>
+        <label><input type="checkbox" value="Pool"> Pool</label>
+        <label><input type="checkbox" value="Breakfast"> Breakfast</label>
+        <label><input type="checkbox" value="Parking"> Parking</label>
+        <label><input type="checkbox" value="Restaurant"> Restaurant</label>
+        <label><input type="checkbox" value="AC"> Air Conditioning</label>
+      </div>
+
+      <p style="margin:1rem 0 0.5rem;"><strong>Hotel Image</strong></p>
+      <input type="url" id="new-hotel-image-url" class="auth-input" placeholder="Paste image URL (or upload below)">
+      <input type="file" id="new-hotel-image-file" accept="image/*" class="auth-input">
+      <img id="image-preview" style="display:none; width:100%; max-height:200px; object-fit:cover; border-radius:10px; margin-bottom:1rem;">
+
+      <input type="text" id="new-hotel-contact" class="auth-input" placeholder="Contact name / phone">
+      <button class="btn-primary full" onclick="submitHotel()">Submit Hotel for Review</button>
+    </div>
+  </section>
+
   <!-- MY BOOKINGS -->
   <section id="my-bookings" class="section">
     <h2>My Bookings</h2>
@@ -113,15 +135,17 @@
       <div class="stat"><span id="confirmed-rate">0%</span><small>Confirmation Rate</small></div>
       <div class="stat"><span id="active-hotels">3</span><small>Active Hotels</small></div>
     </div>
+    <div class="card" style="margin-bottom:1.5rem;">
+      <h3>Pending Hotel Applications</h3>
+      <div id="pending-hotels"></div>
+    </div>
     <div class="card">
       <h3>Recent Activity</h3>
       <div id="admin-activity"></div>
     </div>
   </section>
 
-  <!-- ========== MODALS ========== -->
-
-  <!-- Guest Sign In Modal -->
+  <!-- MODALS -->
   <div id="auth-modal" class="modal">
     <div class="modal-content">
       <h2>Sign In</h2>
@@ -133,23 +157,17 @@
     </div>
   </div>
 
-  <!-- Hotel Login Modal -->
   <div id="hotel-login-modal" class="modal">
     <div class="modal-content">
       <h2>Hotel Login</h2>
       <p class="modal-sub">Enter your Hotel Code and Password</p>
-      <input type="text" id="hotel-code" placeholder="Hotel Code (AFRO, DELTA, GRAND)" class="auth-input">
+      <input type="text" id="hotel-code" placeholder="Hotel Code" class="auth-input">
       <input type="password" id="hotel-pass" placeholder="Password" class="auth-input">
       <button class="btn-primary full" onclick="handleHotelLogin()">Login</button>
       <button class="btn-cancel" onclick="closeModal('hotel-login-modal')">Cancel</button>
-      <p style="font-size:0.8rem; color:var(--muted); margin-top:1rem; text-align:center;">
-        Codes: <strong>AFRO</strong> · <strong>DELTA</strong> · <strong>GRAND</strong><br>
-        Password: <strong>hotel123</strong>
-      </p>
     </div>
   </div>
 
-  <!-- Admin Login Modal -->
   <div id="admin-login-modal" class="modal">
     <div class="modal-content">
       <h2>Admin Login</h2>
@@ -164,7 +182,6 @@
     <div class="footer-logo">CN<span class="logo-pin">7</span></div>
     <p>Connect. Navigate. Stay.</p>
   </footer>
-
   <script src="script.js"></script>
 </body>
 </html>
