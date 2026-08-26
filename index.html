@@ -9,14 +9,12 @@
 </head>
 <body>
   <nav class="navbar">
-    <div class="nav-brand" onclick="showSection('home')">
-      <span class="logo-text">CN</span><span class="logo-pin">7</span>
-    </div>
+    <div class="nav-brand" onclick="showSection('home')">CN<span class="logo-pin">7</span></div>
     <div class="nav-links">
       <button onclick="showSection('home')">Home</button>
       <button onclick="showSection('hotels')">Hotels</button>
       <button onclick="showSection('list-hotel')">List Your Hotel</button>
-      <button onclick="showSection('my-bookings')" id="my-bookings-btn" style="display:none;">My Bookings</button>
+      <button id="my-bookings-btn" onclick="showSection('my-bookings')" style="display:none;">My Bookings</button>
       <button onclick="openHotelLogin()">Hotel</button>
       <button onclick="openAdminLogin()">Admin</button>
       <button id="auth-btn" onclick="toggleAuth()">Sign In</button>
@@ -24,7 +22,6 @@
     </div>
   </nav>
 
-  <!-- HOME -->
   <section id="home" class="section active">
     <div class="hero">
       <h1>Connect. Navigate. Stay.</h1>
@@ -50,7 +47,6 @@
     </div>
   </section>
 
-  <!-- HOTELS -->
   <section id="hotels" class="section">
     <h2>Trusted Hotels in Asaba</h2>
     <div class="filters">
@@ -69,20 +65,16 @@
     <div id="hotel-list" class="hotel-grid"></div>
   </section>
 
-  <!-- HOTEL DETAIL -->
   <section id="hotel-detail" class="section">
     <button class="back-btn" onclick="showSection('hotels')">← Back to hotels</button>
     <div id="detail-content"></div>
   </section>
 
-  <!-- LIST YOUR HOTEL -->
   <section id="list-hotel" class="section">
     <h2>List Your Hotel on CN7</h2>
-    <p style="color:var(--muted); margin-bottom:1.5rem;">Submit your hotel for review. After approval, guests will be able to find and book you.</p>
-    
+    <p class="page-note">Submit your hotel for review. After approval, guests can find and book you.</p>
     <div class="card">
       <input type="text" id="new-hotel-name" class="auth-input" placeholder="Hotel Name">
-      
       <select id="new-hotel-type" class="auth-input">
         <option value="">Hotel Type</option>
         <option value="business">Business</option>
@@ -90,21 +82,19 @@
         <option value="luxury">Luxury</option>
         <option value="event">Event</option>
       </select>
+      <input type="text" id="new-hotel-distance" class="auth-input" placeholder="Location (e.g. 5 min from city centre)">
+      <textarea id="new-hotel-desc" class="auth-input" rows="3" placeholder="Short description"></textarea>
 
-      <input type="text" id="new-hotel-distance" class="auth-input" placeholder="Location / Distance (e.g. 5 min from city centre)">
-      <textarea id="new-hotel-desc" class="auth-input" rows="3" placeholder="Short description of your hotel"></textarea>
-
-      <!-- ROOMS SECTION -->
-      <p style="margin:0.6rem 0 0.5rem;"><strong>Rooms & Prices</strong></p>
+      <p class="form-label">Rooms & Prices</p>
       <div id="room-fields">
         <div class="room-row">
-          <input type="text" class="auth-input room-name" placeholder="Room type (e.g. Classic Room)" value="Classic Room">
+          <input type="text" class="auth-input room-name" placeholder="Room type" value="Classic Room">
           <input type="number" class="auth-input room-price" placeholder="Price (₦)">
         </div>
       </div>
-      <button type="button" class="btn-cancel" style="margin:0 0 1.2rem 0;" onclick="addRoomField()">+ Add another room</button>
+      <button type="button" id="add-room-btn" class="add-room-btn">+ Add another room</button>
 
-      <p style="margin:0.4rem 0 0.5rem;"><strong>Amenities</strong></p>
+      <p class="form-label">Amenities</p>
       <div class="amenity-checks">
         <label><input type="checkbox" value="Wi-Fi"> Wi-Fi</label>
         <label><input type="checkbox" value="Pool"> Pool</label>
@@ -114,23 +104,21 @@
         <label><input type="checkbox" value="AC"> Air Conditioning</label>
       </div>
 
-      <p style="margin:1rem 0 0.5rem;"><strong>Hotel Image</strong></p>
-      <input type="url" id="new-hotel-image-url" class="auth-input" placeholder="Paste image URL (or upload below)">
+      <p class="form-label">Hotel Image</p>
+      <input type="url" id="new-hotel-image-url" class="auth-input" placeholder="Paste image URL">
       <input type="file" id="new-hotel-image-file" accept="image/*" class="auth-input">
-      <img id="image-preview" style="display:none; width:100%; max-height:200px; object-fit:cover; border-radius:10px; margin-bottom:1rem;">
+      <img id="image-preview" alt="">
 
       <input type="text" id="new-hotel-contact" class="auth-input" placeholder="Contact name / phone">
       <button class="btn-primary full" onclick="submitHotel()">Submit Hotel for Review</button>
     </div>
   </section>
 
-  <!-- MY BOOKINGS -->
   <section id="my-bookings" class="section">
     <h2>My Bookings</h2>
     <div id="my-bookings-list" class="card"></div>
   </section>
 
-  <!-- HOTEL DASHBOARD -->
   <section id="hotel-dashboard" class="section">
     <h2 id="hotel-dashboard-title">Hotel Dashboard</h2>
     <div class="card">
@@ -139,7 +127,6 @@
     </div>
   </section>
 
-  <!-- ADMIN -->
   <section id="admin" class="section">
     <h2>Admin Dashboard</h2>
     <div class="admin-stats">
@@ -147,19 +134,16 @@
       <div class="stat"><span id="confirmed-rate">0%</span><small>Confirmation Rate</small></div>
       <div class="stat"><span id="active-hotels">3</span><small>Active Hotels</small></div>
     </div>
-
     <div class="card" style="margin-bottom:1.5rem;">
       <h3>Pending Hotel Applications</h3>
       <div id="pending-hotels"></div>
     </div>
-
     <div class="card">
       <h3>Recent Activity</h3>
       <div id="admin-activity"></div>
     </div>
   </section>
 
-  <!-- MODALS -->
   <div id="auth-modal" class="modal">
     <div class="modal-content">
       <h2>Sign In</h2>
@@ -196,7 +180,6 @@
     <div class="footer-logo">CN<span class="logo-pin">7</span></div>
     <p>Connect. Navigate. Stay.</p>
   </footer>
-
   <script src="script.js"></script>
 </body>
 </html>
