@@ -17,10 +17,10 @@
       <button onclick="showSection('home')">Home</button>
       <button onclick="showSection('hotels')">Hotels</button>
       <button onclick="showSection('my-bookings')" id="my-bookings-btn" style="display:none;">My Bookings</button>
-      <button onclick="openProtected('hotel')">Hotel</button>
-      <button onclick="openProtected('admin')">Admin</button>
+      <button onclick="openHotelLogin()">Hotel</button>
+      <button onclick="openAdminLogin()">Admin</button>
       <button id="auth-btn" onclick="toggleAuth()">Sign In</button>
-      <button id="theme-toggle" onclick="toggleTheme()" title="Toggle theme">🌙</button>
+      <button id="theme-toggle" onclick="toggleTheme()">🌙</button>
     </div>
   </nav>
 
@@ -33,17 +33,14 @@
 
       <div class="search-box">
         <input type="text" id="search-location" value="Asaba" placeholder="Where are you staying?">
-        
         <div class="date-group">
           <label>Check-in</label>
           <input type="date" id="checkin">
         </div>
-        
         <div class="date-group">
           <label>Check-out</label>
           <input type="date" id="checkout">
         </div>
-        
         <button class="btn-primary" onclick="searchHotels()">Search Hotels</button>
       </div>
     </div>
@@ -70,14 +67,12 @@
   <!-- HOTELS -->
   <section id="hotels" class="section">
     <h2>Trusted Hotels in Asaba</h2>
-    
     <div class="filters">
       <select id="filter-type">
         <option value="">All types</option>
         <option value="business">Business</option>
         <option value="family">Family</option>
         <option value="luxury">Luxury</option>
-        <option value="event">Event</option>
       </select>
       <label><input type="checkbox" id="filter-wifi"> Wi-Fi</label>
       <label><input type="checkbox" id="filter-pool"> Pool</label>
@@ -85,7 +80,6 @@
       <label><input type="checkbox" id="filter-parking"> Parking</label>
       <button class="btn-primary" onclick="applyFilters()">Apply Filters</button>
     </div>
-
     <div id="hotel-list" class="hotel-grid"></div>
   </section>
 
@@ -98,14 +92,12 @@
   <!-- MY BOOKINGS -->
   <section id="my-bookings" class="section">
     <h2>My Bookings</h2>
-    <div id="my-bookings-list" class="card">
-      <p style="color:var(--muted)">You have no bookings yet.</p>
-    </div>
+    <div id="my-bookings-list" class="card"></div>
   </section>
 
   <!-- HOTEL DASHBOARD -->
   <section id="hotel-dashboard" class="section">
-    <h2>Hotel Dashboard</h2>
+    <h2 id="hotel-dashboard-title">Hotel Dashboard</h2>
     <div class="card">
       <h3>Incoming Bookings</h3>
       <div id="booking-list"></div>
@@ -116,18 +108,9 @@
   <section id="admin" class="section">
     <h2>Admin Dashboard</h2>
     <div class="admin-stats">
-      <div class="stat">
-        <span id="total-bookings">0</span>
-        <small>Total Bookings</small>
-      </div>
-      <div class="stat">
-        <span id="confirmed-rate">0%</span>
-        <small>Confirmation Rate</small>
-      </div>
-      <div class="stat">
-        <span id="active-hotels">3</span>
-        <small>Active Hotels</small>
-      </div>
+      <div class="stat"><span id="total-bookings">0</span><small>Total Bookings</small></div>
+      <div class="stat"><span id="confirmed-rate">0%</span><small>Confirmation Rate</small></div>
+      <div class="stat"><span id="active-hotels">3</span><small>Active Hotels</small></div>
     </div>
     <div class="card">
       <h3>Recent Activity</h3>
@@ -136,16 +119,40 @@
   </section>
 
   <!-- SIGN IN MODAL -->
-  <div id="auth-modal" class="modal" style="display:none;">
+  <div id="auth-modal" class="modal">
     <div class="modal-content">
       <h2>Sign In</h2>
-      <p style="color:var(--muted); margin-bottom:1.2rem;">Enter your details to continue</p>
-      
+      <p class="modal-sub">Enter your details to continue</p>
       <input type="text" id="auth-name" placeholder="Full Name" class="auth-input">
       <input type="tel" id="auth-phone" placeholder="Phone Number" class="auth-input">
-      
-      <button class="btn-primary" style="width:100%; margin-top:1rem;" onclick="handleAuth()">Continue</button>
-      <button onclick="closeAuth()" style="margin-top:0.8rem; background:none; border:none; color:var(--muted); cursor:pointer; width:100%;">Cancel</button>
+      <button class="btn-primary full" onclick="handleAuth()">Continue</button>
+      <button class="btn-cancel" onclick="closeModal('auth-modal')">Cancel</button>
+    </div>
+  </div>
+
+  <!-- HOTEL LOGIN MODAL -->
+  <div id="hotel-login-modal" class="modal">
+    <div class="modal-content">
+      <h2>Hotel Login</h2>
+      <p class="modal-sub">Enter your Hotel Code and Password</p>
+      <input type="text" id="hotel-code" placeholder="Hotel Code (e.g. AFRO)" class="auth-input">
+      <input type="password" id="hotel-pass" placeholder="Password" class="auth-input">
+      <button class="btn-primary full" onclick="handleHotelLogin()">Login</button>
+      <button class="btn-cancel" onclick="closeModal('hotel-login-modal')">Cancel</button>
+      <p style="font-size:0.8rem; color:var(--muted); margin-top:1rem;">
+        Codes: AFRO · DELTA · GRAND<br>Password: hotel123
+      </p>
+    </div>
+  </div>
+
+  <!-- ADMIN LOGIN MODAL -->
+  <div id="admin-login-modal" class="modal">
+    <div class="modal-content">
+      <h2>Admin Login</h2>
+      <p class="modal-sub">Enter Admin Password</p>
+      <input type="password" id="admin-pass" placeholder="Password" class="auth-input">
+      <button class="btn-primary full" onclick="handleAdminLogin()">Login</button>
+      <button class="btn-cancel" onclick="closeModal('admin-login-modal')">Cancel</button>
     </div>
   </div>
 
