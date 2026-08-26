@@ -55,7 +55,7 @@ const hotels = [
 
 let bookings = JSON.parse(localStorage.getItem('cn7_bookings') || '[]');
 let currentUser = JSON.parse(localStorage.getItem('cn7_user') || 'null');
-let currentHotel = null; // currently logged-in hotel
+let currentHotel = null;
 
 // Theme
 function toggleTheme() {
@@ -67,10 +67,11 @@ function toggleTheme() {
   document.getElementById('theme-toggle').textContent = next === 'dark' ? '🌙' : '☀️';
 }
 
-// Modals
+// Modal helpers
 function openModal(id) {
   document.getElementById(id).style.display = 'flex';
 }
+
 function closeModal(id) {
   document.getElementById(id).style.display = 'none';
 }
@@ -78,7 +79,7 @@ function closeModal(id) {
 // Guest Auth
 function toggleAuth() {
   if (currentUser) {
-    if (confirm("Sign out?")) {
+    if (confirm("Do you want to sign out?")) {
       currentUser = null;
       localStorage.removeItem('cn7_user');
       updateAuthUI();
@@ -92,20 +93,25 @@ function toggleAuth() {
 function handleAuth() {
   const name = document.getElementById('auth-name').value.trim();
   const phone = document.getElementById('auth-phone').value.trim();
-  if (!name || !phone) return alert("Please enter name and phone");
+
+  if (!name || !phone) {
+    alert("Please enter your Full Name and Phone Number");
+    return;
+  }
 
   currentUser = { name, phone };
   localStorage.setItem('cn7_user', JSON.stringify(currentUser));
   closeModal('auth-modal');
   updateAuthUI();
-  alert(`Welcome, ${name}!`);
+  alert("Welcome, " + name + "!");
 }
 
 function updateAuthUI() {
   const btn = document.getElementById('auth-btn');
   const myBtn = document.getElementById('my-bookings-btn');
+
   if (currentUser) {
-    btn.textContent = `Hi, ${currentUser.name.split(' ')[0]}`;
+    btn.textContent = "Hi, " + currentUser.name.split(' ')[0];
     myBtn.style.display = 'inline-block';
   } else {
     btn.textContent = 'Sign In';
@@ -131,13 +137,13 @@ function handleHotelLogin() {
 
   const hotel = hotels.find(h => h.code === code);
   if (!hotel) {
-    alert("Invalid Hotel Code.\nUse: AFRO, DELTA or GRAND");
+    alert("Invalid Hotel Code.\nPlease use: AFRO, DELTA or GRAND");
     return;
   }
 
   currentHotel = hotel;
   closeModal('hotel-login-modal');
-  document.getElementById('hotel-dashboard-title').textContent = `${hotel.name} Dashboard`;
+  document.getElementById('hotel-dashboard-title').textContent = hotel.name + " Dashboard";
   showSection('hotel-dashboard');
   renderHotelBookings();
 }
@@ -155,7 +161,7 @@ function handleAdminLogin() {
     showSection('admin');
     updateAdmin();
   } else {
-    alert("Wrong admin password");
+    alert("Wrong Admin password");
   }
 }
 
@@ -163,25 +169,34 @@ function handleAdminLogin() {
 function showSection(id) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
+
   if (id === 'hotels') renderHotels(hotels);
   if (id === 'my-bookings') renderMyBookings();
   if (id === 'hotel-dashboard') renderHotelBookings();
   if (id === 'admin') updateAdmin();
 }
 
-// Search & Filters
+// Search & Filter
 function searchHotels() {
   const location = document.getElementById('search-location').value.toLowerCase().trim();
   let filtered = hotels;
-  if (location && location !== "asaba") filtered = [];
+
+  if (location && location !== "asaba") {
+    filtered = [];
+  }
+
   showSection('hotels');
   renderHotels(filtered);
+
   if (filtered.length === 0) {
     document.getElementById('hotel-list').innerHTML = `
-      <div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--muted)">
+      <div style="grid-column:1/-1; text-align:center; padding:3rem; color:var(--muted);">
         <h3>No hotels found</h3>
         <p>Currently CN7 only operates in Asaba.</p>
-        <button class="btn-primary" style="margin-top:1rem" onclick="document.getElementById('search-location').value='Asaba';searchHotels()">Show Asaba Hotels</button>
+        <button class="btn-primary" style="margin-top:1rem" 
+          onclick="document.getElementById('search-location').value='Asaba'; searchHotels()">
+          Show Asaba Hotels
+        </button>
       </div>`;
   }
 }
@@ -216,7 +231,9 @@ function renderHotels(list) {
         <div class="meta">★ ${h.rating} · ${h.reviews} verified reviews</div>
         <div class="meta">📍 ${h.distance}</div>
         <div class="price">From ₦${h.price.toLocaleString()} / night</div>
-        <div class="amenities">${h.amenities.map(a => `<span class="amenity">✓ ${a}</span>`).join('')}</div>
+        <div class="amenities">
+          ${h.amenities.map(a => `<span class="amenity">✓ ${a}</span>`).join('')}
+        </div>
         <div class="verified">Verified by CN7</div>
       </div>
     </div>
@@ -226,25 +243,31 @@ function renderHotels(list) {
 function showHotelDetail(id) {
   const hotel = hotels.find(h => h.id === id);
   showSection('hotel-detail');
+
   document.getElementById('detail-content').innerHTML = `
-    <img src="${hotel.image}" style="width:100%;height:280px;object-fit:cover;border-radius:14px;margin-bottom:1.4rem">
+    <img src="${hotel.image}" style="width:100%; height:280px; object-fit:cover; border-radius:14px; margin-bottom:1.4rem;">
     <h2>${hotel.name}</h2>
-    <div style="color:var(--muted);margin:0.5rem 0 1rem">★ ${hotel.rating} · ${hotel.reviews} reviews · ${hotel.type}</div>
-    <p style="margin-bottom:1.2rem">${hotel.description}</p>
+    <div style="color:var(--muted); margin:0.5rem 0 1rem;">
+      ★ ${hotel.rating} · ${hotel.reviews} reviews · ${hotel.type}
+    </div>
+    <p style="margin-bottom:1.2rem;">${hotel.description}</p>
     <p><strong>📍 Location:</strong> ${hotel.distance}</p>
-    <div class="amenities" style="margin:1rem 0">${hotel.amenities.map(a => `<span class="amenity">✓ ${a}</span>`).join('')}</div>
-    <div class="verified" style="margin-bottom:1.8rem">Verified by CN7</div>
-    <h3 style="margin-bottom:1rem">Available Rooms</h3>
-    ${hotel.rooms.map((r,i) => `
+    <div class="amenities" style="margin:1rem 0;">
+      ${hotel.amenities.map(a => `<span class="amenity">✓ ${a}</span>`).join('')}
+    </div>
+    <div class="verified" style="margin-bottom:1.8rem;">Verified by CN7</div>
+
+    <h3 style="margin-bottom:1rem;">Available Rooms</h3>
+    ${hotel.rooms.map((r, i) => `
       <div class="room-card">
         <div>
           <strong>${r.name}</strong><br>
-          <span style="color:var(--green);font-weight:600">₦${r.price.toLocaleString()} / night</span>
+          <span style="color:var(--green); font-weight:600;">₦${r.price.toLocaleString()} / night</span>
         </div>
-        <button class="btn-primary" onclick="bookRoom(${hotel.id},${i})">Request Booking</button>
+        <button class="btn-primary" onclick="bookRoom(${hotel.id}, ${i})">Request Booking</button>
       </div>
     `).join('')}
-    <p style="margin-top:1.5rem;font-size:0.9rem;color:var(--muted)">
+    <p style="margin-top:1.5rem; font-size:0.9rem; color:var(--muted);">
       Note: This is a booking request. Payment is made at the hotel.
     </p>
   `;
@@ -252,16 +275,17 @@ function showHotelDetail(id) {
 
 function bookRoom(hotelId, roomIndex) {
   if (!currentUser) {
-    alert("Please Sign In first");
+    alert("Please Sign In first to make a booking");
     toggleAuth();
     return;
   }
+
   const hotel = hotels.find(h => h.id === hotelId);
   const room = hotel.rooms[roomIndex];
 
   const booking = {
     id: Date.now(),
-    hotelId,
+    hotelId: hotel.id,
     hotelName: hotel.name,
     room: room.name,
     price: room.price,
@@ -270,9 +294,10 @@ function bookRoom(hotelId, roomIndex) {
     status: "requested",
     date: new Date().toLocaleString()
   };
+
   bookings.push(booking);
   localStorage.setItem('cn7_bookings', JSON.stringify(bookings));
-  alert(`Booking requested for ${hotel.name}`);
+  alert("Booking requested for " + hotel.name);
   showSection('my-bookings');
   renderMyBookings();
 }
@@ -280,16 +305,18 @@ function bookRoom(hotelId, roomIndex) {
 function renderMyBookings() {
   const list = document.getElementById('my-bookings-list');
   if (!currentUser) {
-    list.innerHTML = '<p style="color:var(--muted)">Please sign in.</p>';
+    list.innerHTML = '<p style="color:var(--muted)">Please sign in to see your bookings.</p>';
     return;
   }
+
   const my = bookings.filter(b => b.phone === currentUser.phone);
   if (my.length === 0) {
-    list.innerHTML = '<p style="color:var(--muted)">No bookings yet.</p>';
+    list.innerHTML = '<p style="color:var(--muted)">You have no bookings yet.</p>';
     return;
   }
+
   list.innerHTML = my.map(b => `
-    <div style="border:1px solid var(--border);padding:1rem;border-radius:10px;margin-bottom:1rem">
+    <div style="border:1px solid var(--border); padding:1rem; border-radius:10px; margin-bottom:1rem;">
       <strong>${b.hotelName}</strong> — ${b.room}<br>
       ₦${b.price.toLocaleString()} · <span class="status ${b.status}">${b.status}</span><br>
       <small>${b.date}</small>
@@ -300,7 +327,7 @@ function renderMyBookings() {
 function renderHotelBookings() {
   const list = document.getElementById('booking-list');
   if (!currentHotel) {
-    list.innerHTML = '<p style="color:var(--muted)">Please login as a hotel.</p>';
+    list.innerHTML = '<p style="color:var(--muted)">Please login as a hotel first.</p>';
     return;
   }
 
@@ -312,17 +339,17 @@ function renderHotelBookings() {
   }
 
   list.innerHTML = hotelBookings.map(b => `
-    <div style="border:1px solid var(--border);padding:1rem;border-radius:10px;margin-bottom:1rem">
+    <div style="border:1px solid var(--border); padding:1rem; border-radius:10px; margin-bottom:1rem;">
       <strong>${b.guestName}</strong> · ${b.phone}<br>
       ${b.room}<br>
       ₦${b.price.toLocaleString()} · <span class="status ${b.status}">${b.status}</span><br>
       <small>${b.date}</small>
       ${b.status === 'requested' ? `
-        <div style="margin-top:0.8rem">
-          <button class="btn-primary" style="padding:0.4rem 0.9rem;font-size:0.85rem"
-            onclick="updateBooking(${b.id},'confirmed')">Confirm</button>
-          <button style="background:#dc2626;color:white;border:none;padding:0.4rem 0.9rem;border-radius:8px;margin-left:0.5rem;cursor:pointer"
-            onclick="updateBooking(${b.id},'rejected')">Reject</button>
+        <div style="margin-top:0.8rem;">
+          <button class="btn-primary" style="padding:0.4rem 0.9rem; font-size:0.85rem;"
+            onclick="updateBooking(${b.id}, 'confirmed')">Confirm</button>
+          <button style="background:#dc2626; color:white; border:none; padding:0.4rem 0.9rem; border-radius:8px; margin-left:0.5rem; cursor:pointer;"
+            onclick="updateBooking(${b.id}, 'rejected')">Reject</button>
         </div>
       ` : ''}
     </div>
@@ -343,13 +370,13 @@ function updateAdmin() {
   document.getElementById('confirmed-rate').textContent = rate + '%';
 
   document.getElementById('admin-activity').innerHTML = bookings.slice(-8).reverse().map(b => `
-    <div style="padding:0.6rem 0;border-bottom:1px solid var(--border)">
+    <div style="padding:0.6rem 0; border-bottom:1px solid var(--border);">
       ${b.guestName} → ${b.hotelName} <span class="status ${b.status}">${b.status}</span>
     </div>
   `).join('') || '<p style="color:var(--muted)">No activity yet.</p>';
 }
 
-// Init
+// Initialize
 document.addEventListener('DOMContentLoaded', () => {
   const saved = localStorage.getItem('cn7-theme') || 'dark';
   document.documentElement.setAttribute('data-theme', saved);
