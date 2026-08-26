@@ -51,6 +51,7 @@ const hotels = [
 ];
 
 let bookings = JSON.parse(localStorage.getItem('cn7_bookings') || '[]');
+let currentUser = JSON.parse(localStorage.getItem('cn7_user') || 'null');
 
 // Theme
 function toggleTheme() {
@@ -62,13 +63,62 @@ function toggleTheme() {
   document.getElementById('theme-toggle').textContent = next === 'dark' ? '🌙' : '☀️';
 }
 
+// Auth
+function toggleAuth() {
+  if (currentUser) {
+    if (confirm("Do you want to sign out?")) {
+      currentUser = null;
+      localStorage.removeItem('cn7_user');
+      updateAuthUI();
+      showSection('home');
+    }
+  } else {
+    document.getElementById('auth-modal').style.display = 'flex';
+  }
+}
+
+function closeAuth() {
+  document.getElementById('auth-modal').style.display = 'none';
+}
+
+function handleAuth() {
+  const name = document.getElementById('auth-name').value.trim();
+  const phone = document.getElementById('auth-phone').value.trim();
+
+  if (!name || !phone) {
+    alert("Please enter your name and phone number");
+    return;
+  }
+
+  currentUser = { name, phone };
+  localStorage.setItem('cn7_user', JSON.stringify(currentUser));
+  closeAuth();
+  updateAuthUI();
+  alert(`Welcome, ${name}!`);
+}
+
+function updateAuthUI() {
+  const authBtn = document.getElementById('auth-btn');
+  const myBookingsBtn = document.getElementById('my-bookings-btn');
+
+  if (currentUser) {
+    authBtn.textContent = `Hi, ${currentUser.name.split(' ')[0]}`;
+    myBookingsBtn.style.display = 'inline-block';
+  } else {
+    authBtn.textContent = 'Sign In';
+    myBookingsBtn.style.display = 'none';
+  }
+}
+
 // Navigation
 function showSection(id) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
+  
   if (id === 'hotels') renderHotels(hotels);
   if (id === 'hotel-dashboard') renderHotelBookings();
   if (id === 'admin') updateAdmin();
+  if (id === 'my-bookings') renderMyBookings();
 }
 
 function openProtected(type) {
@@ -78,7 +128,7 @@ function openProtected(type) {
   else alert("Wrong password");
 }
 
-// Search
+// Search & Filters
 function searchHotels() {
   const location = document.getElementById('search-location').value.toLowerCase().trim();
   let filtered = hotels;
@@ -127,7 +177,7 @@ function renderHotels(list) {
 
   container.innerHTML = list.map(h => `
     <div class="hotel-card" onclick="showHotelDetail(${h.id})">
-      <img src="${h.image}" alt="${h.name}">
+      <img src="${h.image}" alt="${h.name}" loading="lazy">
       <div class="hotel-card-body">
         <h3>${h.name}</h3>
         <div class="meta">★ ${h.rating} · ${h.reviews} verified reviews</div>
@@ -142,43 +192,52 @@ function renderHotels(list) {
   `).join('');
 }
 
-// Hotel Detail
 function showHotelDetail(id) {
   const hotel = hotels.find(h => h.id === id);
+  if (!hotel) return;
+
   showSection('hotel-detail');
 
   document.getElementById('detail-content').innerHTML = `
-    <img src="${hotel.image}" style="width:100%; height:260px; object-fit:cover; border-radius:12px; margin-bottom:1.3rem;">
+    <img src="${hotel.image}" style="width:100%; height:280px; object-fit:cover; border-radius:14px; margin-bottom:1.4rem;">
     <h2>${hotel.name}</h2>
-    <p>★ ${hotel.rating} · ${hotel.reviews} verified reviews · ${hotel.type}</p>
-    <p style="margin:1rem 0; color:var(--muted)">${hotel.description}</p>
-    <p><strong>Location:</strong> ${hotel.distance}</p>
-    <p><strong>Amenities:</strong> ${hotel.amenities.join(' · ')}</p>
+    <div style="color:var(--muted); margin:0.5rem 0 1rem;">
+      ★ ${hotel.rating} · ${hotel.reviews} verified reviews · ${hotel.type}
+    </div>
+    <p style="margin-bottom:1.2rem;">${hotel.description}</p>
+    <p><strong>📍 Location:</strong> ${hotel.distance}</p>
+    <p style="margin:0.8rem 0;"><strong>Amenities:</strong></p>
+    <div class="amenities" style="margin-bottom:1.5rem;">
+      ${hotel.amenities.map(a => `<span class="amenity">✓ ${a}</span>`).join('')}
+    </div>
+    <div class="verified" style="margin-bottom:1.8rem;">Verified by CN7</div>
     
-    <h3 style="margin:1.8rem 0 1rem;">Available Rooms</h3>
+    <h3 style="margin-bottom:1rem;">Available Rooms</h3>
     ${hotel.rooms.map((r, i) => `
       <div class="room-card">
         <div>
           <strong>${r.name}</strong><br>
-          <span style="color:var(--green)">₦${r.price.toLocaleString()} / night</span>
+          <span style="color:var(--green); font-weight:600;">₦${r.price.toLocaleString()} / night</span>
         </div>
         <button class="btn-primary" onclick="bookRoom(${hotel.id}, ${i})">Request Booking</button>
       </div>
     `).join('')}
-    <p style="margin-top:1.3rem; font-size:0.9rem; color:var(--muted)">
-      V1: Pay at hotel · Free cancellation up to 24 hours before check-in
+    <p style="margin-top:1.5rem; font-size:0.9rem; color:var(--muted);">
+      <strong>Note:</strong> This is a booking request. Payment is made at the hotel.  
+      Free cancellation up to 24 hours before check-in.
     </p>
   `;
 }
 
 function bookRoom(hotelId, roomIndex) {
+  if (!currentUser) {
+    alert("Please Sign In first to make a booking");
+    toggleAuth();
+    return;
+  }
+
   const hotel = hotels.find(h => h.id === hotelId);
   const room = hotel.rooms[roomIndex];
-
-  const name = prompt("Your full name:");
-  if (!name) return;
-  const phone = prompt("Phone number:");
-  if (!phone) return;
 
   const booking = {
     id: Date.now(),
@@ -186,8 +245,8 @@ function bookRoom(hotelId, roomIndex) {
     hotelName: hotel.name,
     room: room.name,
     price: room.price,
-    guestName: name,
-    phone,
+    guestName: currentUser.name,
+    phone: currentUser.phone,
     status: "requested",
     date: new Date().toLocaleString()
   };
@@ -195,11 +254,35 @@ function bookRoom(hotelId, roomIndex) {
   bookings.push(booking);
   localStorage.setItem('cn7_bookings', JSON.stringify(bookings));
   
-  alert(`Booking Requested!\n\n${hotel.name} – ${room.name}\nStatus: Waiting for hotel confirmation`);
-  showSection('home');
+  alert(`Booking Requested!\n\n${hotel.name} – ${room.name}`);
+  showSection('my-bookings');
+  renderMyBookings();
 }
 
-// Hotel Dashboard
+function renderMyBookings() {
+  const list = document.getElementById('my-bookings-list');
+  
+  if (!currentUser) {
+    list.innerHTML = '<p style="color:var(--muted)">Please sign in to see your bookings.</p>';
+    return;
+  }
+
+  const myBookings = bookings.filter(b => b.phone === currentUser.phone);
+
+  if (myBookings.length === 0) {
+    list.innerHTML = '<p style="color:var(--muted)">You have no bookings yet.</p>';
+    return;
+  }
+
+  list.innerHTML = myBookings.map(b => `
+    <div style="border:1px solid var(--border); padding:1rem; border-radius:10px; margin-bottom:1rem;">
+      <strong>${b.hotelName}</strong> — ${b.room}<br>
+      ₦${b.price.toLocaleString()} · <strong>${b.status}</strong><br>
+      <small>${b.date}</small>
+    </div>
+  `).join('');
+}
+
 function renderHotelBookings() {
   const list = document.getElementById('booking-list');
   if (bookings.length === 0) {
@@ -232,7 +315,6 @@ function updateBooking(id, status) {
   updateAdmin();
 }
 
-// Admin
 function updateAdmin() {
   document.getElementById('total-bookings').textContent = bookings.length;
   const confirmed = bookings.filter(b => b.status === 'confirmed').length;
@@ -252,5 +334,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const saved = localStorage.getItem('cn7-theme') || 'dark';
   document.documentElement.setAttribute('data-theme', saved);
   document.getElementById('theme-toggle').textContent = saved === 'dark' ? '🌙' : '☀️';
+  
+  updateAuthUI();
   showSection('home');
 });
