@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -18,26 +18,31 @@
       <button onclick="showSection('hotels')">Hotels</button>
       <button onclick="openProtected('hotel')">Hotel</button>
       <button onclick="openProtected('admin')">Admin</button>
+      <button id="theme-toggle" onclick="toggleTheme()" title="Switch theme">🌙</button>
     </div>
   </nav>
 
   <!-- HOME -->
   <section id="home" class="section active">
-    <div class="search-box">
-  <input type="text" id="search-location" value="Asaba" placeholder="Where are you going?">
-  
-  <div class="date-group">
-    <label>Check-in</label>
-    <input type="date" id="checkin">
-  </div>
-  
-  <div class="date-group">
-    <label>Check-out</label>
-    <input type="date" id="checkout">
-  </div>
-  
-  <button class="btn-primary" onclick="searchHotels()">Search Hotels</button>
-</div>
+    <div class="hero">
+      <h1>Connect. Navigate. Stay.</h1>
+      <p class="tagline">Hospitality. Perfected.</p>
+      
+      <div class="search-box">
+        <input type="text" id="search-location" value="Asaba" placeholder="Where are you going?">
+        
+        <div class="date-group">
+          <label>Check-in</label>
+          <input type="date" id="checkin">
+        </div>
+        
+        <div class="date-group">
+          <label>Check-out</label>
+          <input type="date" id="checkout">
+        </div>
+        
+        <button class="btn-primary" onclick="searchHotels()">Search Hotels</button>
+      </div>
     </div>
 
     <div class="features">
@@ -79,7 +84,7 @@
 
   <!-- HOTEL DETAIL -->
   <section id="hotel-detail" class="section">
-    <button class="back-btn" onclick="showSection('hotels')">← Back</button>
+    <button class="back-btn" onclick="showSection('hotels')">← Back to hotels</button>
     <div id="detail-content"></div>
   </section>
 
@@ -100,10 +105,16 @@
       <div class="stat"><span id="confirmed-rate">0%</span><br>Confirmation Rate</div>
       <div class="stat"><span id="active-hotels">3</span><br>Active Hotels</div>
     </div>
-    <div id="admin-activity" class="card"></div>
+    <div id="admin-activity" class="card">
+      <p>No activity yet.</p>
+    </div>
   </section>
 
   <footer>
-  <div class="footer-logo">CN<span class="logo-pin">7</span></div>
-  <p>Connect. Navigate. Stay.</p>
-</footer>
+    <div class="footer-logo">CN<span class="logo-pin">7</span></div>
+    <p>Connect. Navigate. Stay.</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
