@@ -1,857 +1,135 @@
-```html
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
   <title>CN7 — Connect. Navigate. Stay.</title>
-
-  <meta
-    name="description"
-    content="CN7 helps you discover, compare and request bookings at trusted hotels in Asaba."
-  >
-
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
-
 <body>
-
-  <!-- =========================
-       NAVIGATION
-  ========================== -->
-  <header class="navbar">
-    <div class="container nav-inner">
-
-      <a href="#" class="logo" onclick="showHome()">
-        <span class="logo-cn">CN</span><span class="logo-seven">7</span>
-      </a>
-
-      <nav class="nav-links">
-        <a href="#hotels">Hotels</a>
-        <a href="#how-it-works">How It Works</a>
-        <a href="#partners">For Hotels</a>
-      </nav>
-
-      <button class="nav-button" onclick="showHotelPartner()">
-        Partner With Us
-      </button>
-
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="nav-brand" onclick="showSection('home')">
+      <span class="logo-text">CN</span><span class="logo-pin">7</span>
     </div>
-  </header>
+    <div class="nav-links">
+      <button onclick="showSection('home')">Home</button>
+      <button onclick="showSection('hotels')">Hotels</button>
+      <button onclick="openProtected('hotel')">Hotel</button>
+      <button onclick="openProtected('admin')">Admin</button>
+      <button id="theme-toggle" onclick="toggleTheme()" title="Toggle theme">🌙</button>
+    </div>
+  </nav>
 
+  <!-- HOME -->
+  <section id="home" class="section active">
+    <div class="hero">
+      <h1>Connect. Navigate. Stay.</h1>
+      <p class="tagline">Hospitality. Perfected.</p>
+      <p class="hero-desc">Find, compare and book trusted hotels in Asaba in one place.</p>
 
-  <!-- =========================
-       HERO
-  ========================== -->
-  <main id="home">
-
-    <section class="hero">
-
-      <div class="container hero-content">
-
-        <div class="hero-badge">
-          🇳🇬 Starting in Asaba
+      <div class="search-box">
+        <input type="text" id="search-location" value="Asaba" placeholder="Where are you staying?">
+        
+        <div class="date-group">
+          <label>Check-in</label>
+          <input type="date" id="checkin">
         </div>
-
-        <h1>
-          Find the right place
-          <span>to stay.</span>
-        </h1>
-
-        <p class="hero-subtitle">
-          Discover, compare and request bookings at trusted hotels in Asaba —
-          all in one place.
-        </p>
-
-        <!-- SEARCH BOX -->
-        <div class="search-card">
-
-          <div class="search-field">
-            <label for="destination">Destination</label>
-            <input
-              type="text"
-              id="destination"
-              value="Asaba"
-              placeholder="Where are you going?"
-            >
-          </div>
-
-          <div class="search-field">
-            <label for="checkin">Check-in</label>
-            <input type="date" id="checkin">
-          </div>
-
-          <div class="search-field">
-            <label for="checkout">Check-out</label>
-            <input type="date" id="checkout">
-          </div>
-
-          <button class="search-button" onclick="searchHotels()">
-            Search Hotels
-          </button>
-
+        
+        <div class="date-group">
+          <label>Check-out</label>
+          <input type="date" id="checkout">
         </div>
-
-        <p class="pay-note">
-          ✓ Pay at the hotel &nbsp; • &nbsp; ✓ Verified listings &nbsp; • &nbsp;
-          ✓ Real guest reviews
-        </p>
-
+        
+        <button class="btn-primary" onclick="searchHotels()">Search Hotels</button>
       </div>
-
-    </section>
-
-
-    <!-- =========================
-         VALUE PROPOSITIONS
-    ========================== -->
-    <section class="benefits">
-
-      <div class="container benefits-grid">
-
-        <div class="benefit-card">
-          <div class="benefit-icon">⚡</div>
-          <h3>Simple Booking</h3>
-          <p>
-            Find a hotel, choose your room and request your booking without
-            unnecessary complications.
-          </p>
-        </div>
-
-        <div class="benefit-card">
-          <div class="benefit-icon">🛡️</div>
-          <h3>Built on Trust</h3>
-          <p>
-            Discover verified hotel listings, transparent information and
-            reviews from completed stays.
-          </p>
-        </div>
-
-        <div class="benefit-card">
-          <div class="benefit-icon">📍</div>
-          <h3>Asaba First</h3>
-          <p>
-            Built around the needs of people looking for the right place to
-            stay in Asaba.
-          </p>
-        </div>
-
-      </div>
-
-    </section>
-
-
-    <!-- =========================
-         HOTELS
-    ========================== -->
-    <section id="hotels" class="hotels-section">
-
-      <div class="container">
-
-        <div class="section-heading">
-
-          <div>
-            <span class="section-label">DISCOVER</span>
-
-            <h2>Hotels in Asaba</h2>
-
-            <p>
-              Compare hotels by price, amenities, location and guest
-              experience.
-            </p>
-          </div>
-
-          <div class="hotel-count" id="hotelCount">
-            3 hotels
-          </div>
-
-        </div>
-
-
-        <!-- FILTERS -->
-        <div class="filter-bar">
-
-          <select id="priceFilter">
-            <option value="all">Any price</option>
-            <option value="budget">Budget</option>
-            <option value="mid">Mid-range</option>
-            <option value="luxury">Luxury</option>
-          </select>
-
-          <label class="filter-check">
-            <input type="checkbox" id="wifiFilter">
-            Wi-Fi
-          </label>
-
-          <label class="filter-check">
-            <input type="checkbox" id="poolFilter">
-            Pool
-          </label>
-
-          <label class="filter-check">
-            <input type="checkbox" id="breakfastFilter">
-            Breakfast
-          </label>
-
-          <label class="filter-check">
-            <input type="checkbox" id="parkingFilter">
-            Parking
-          </label>
-
-          <button class="filter-button" onclick="applyFilters()">
-            Apply Filters
-          </button>
-
-        </div>
-
-
-        <!-- HOTEL CARDS -->
-        <div class="hotel-grid" id="hotelGrid">
-
-          <!-- HOTEL 1 -->
-          <article class="hotel-card">
-
-            <div class="hotel-image hotel-image-one">
-              <span class="verified-badge">
-                ✓ CN7 Verified
-              </span>
-
-              <span class="hotel-category">
-                Business Friendly
-              </span>
-            </div>
-
-            <div class="hotel-info">
-
-              <div class="hotel-title-row">
-
-                <div>
-                  <h3>Afro View Hotel</h3>
-
-                  <div class="rating">
-                    ★ 4.6
-                    <span>(128 verified reviews)</span>
-                  </div>
-                </div>
-
-              </div>
-
-              <p class="hotel-location">
-                📍 Asaba, Delta State
-              </p>
-
-              <div class="amenities">
-                <span>✓ Wi-Fi</span>
-                <span>✓ Parking</span>
-                <span>✓ Breakfast</span>
-                <span>✓ Restaurant</span>
-              </div>
-
-              <div class="hotel-bottom">
-
-                <div class="price">
-                  <strong>₦35,000</strong>
-                  <small>/ night</small>
-                </div>
-
-                <button
-                  class="view-button"
-                  onclick="openHotel('Afro View Hotel')"
-                >
-                  View Hotel
-                </button>
-
-              </div>
-
-            </div>
-
-          </article>
-
-
-          <!-- HOTEL 2 -->
-          <article class="hotel-card">
-
-            <div class="hotel-image hotel-image-two">
-
-              <span class="verified-badge">
-                ✓ CN7 Verified
-              </span>
-
-              <span class="hotel-category">
-                Family Friendly
-              </span>
-
-            </div>
-
-            <div class="hotel-info">
-
-              <h3>Grand Stay Hotel</h3>
-
-              <div class="rating">
-                ★ 4.4
-                <span>(96 verified reviews)</span>
-              </div>
-
-              <p class="hotel-location">
-                📍 Asaba, Delta State
-              </p>
-
-              <div class="amenities">
-                <span>✓ Wi-Fi</span>
-                <span>✓ Pool</span>
-                <span>✓ Parking</span>
-                <span>✓ Restaurant</span>
-              </div>
-
-              <div class="hotel-bottom">
-
-                <div class="price">
-                  <strong>₦28,000</strong>
-                  <small>/ night</small>
-                </div>
-
-                <button
-                  class="view-button"
-                  onclick="openHotel('Grand Stay Hotel')"
-                >
-                  View Hotel
-                </button>
-
-              </div>
-
-            </div>
-
-          </article>
-
-
-          <!-- HOTEL 3 -->
-          <article class="hotel-card">
-
-            <div class="hotel-image hotel-image-three">
-
-              <span class="verified-badge">
-                ✓ CN7 Verified
-              </span>
-
-              <span class="hotel-category">
-                Luxury
-              </span>
-
-            </div>
-
-            <div class="hotel-info">
-
-              <h3>Royal Haven</h3>
-
-              <div class="rating">
-                ★ 4.8
-                <span>(174 verified reviews)</span>
-              </div>
-
-              <p class="hotel-location">
-                📍 Asaba, Delta State
-              </p>
-
-              <div class="amenities">
-                <span>✓ Wi-Fi</span>
-                <span>✓ Pool</span>
-                <span>✓ Breakfast</span>
-                <span>✓ Parking</span>
-              </div>
-
-              <div class="hotel-bottom">
-
-                <div class="price">
-                  <strong>₦55,000</strong>
-                  <small>/ night</small>
-                </div>
-
-                <button
-                  class="view-button"
-                  onclick="openHotel('Royal Haven')"
-                >
-                  View Hotel
-                </button>
-
-              </div>
-
-            </div>
-
-          </article>
-
-        </div>
-
-      </div>
-
-    </section>
-
-
-    <!-- =========================
-         HOW IT WORKS
-    ========================== -->
-    <section id="how-it-works" class="how-section">
-
-      <div class="container">
-
-        <div class="section-heading centered">
-
-          <span class="section-label">HOW IT WORKS</span>
-
-          <h2>From search to stay.</h2>
-
-          <p>
-            CN7 keeps the hotel booking experience simple.
-          </p>
-
-        </div>
-
-
-        <div class="steps-grid">
-
-          <div class="step">
-
-            <span class="step-number">01</span>
-
-            <h3>Discover</h3>
-
-            <p>
-              Search hotels in Asaba and compare prices, amenities, locations
-              and reviews.
-            </p>
-
-          </div>
-
-
-          <div class="step">
-
-            <span class="step-number">02</span>
-
-            <h3>Request</h3>
-
-            <p>
-              Select your room and submit a booking request. No payment is
-              required in V1.
-            </p>
-
-          </div>
-
-
-          <div class="step">
-
-            <span class="step-number">03</span>
-
-            <h3>Confirm</h3>
-
-            <p>
-              The hotel receives your request and confirms your reservation.
-            </p>
-
-          </div>
-
-
-          <div class="step">
-
-            <span class="step-number">04</span>
-
-            <h3>Stay</h3>
-
-            <p>
-              Arrive at the hotel, pay directly at check-in and enjoy your
-              stay.
-            </p>
-
-          </div>
-
-        </div>
-
-      </div>
-
-    </section>
-
-
-    <!-- =========================
-         HOTEL PARTNERS
-    ========================== -->
-    <section id="partners" class="partner-section">
-
-      <div class="container partner-content">
-
-        <div>
-
-          <span class="section-label">FOR HOTELS</span>
-
-          <h2>More visibility.<br>More bookings.<br>Less hassle.</h2>
-
-          <p>
-            CN7 helps hotels showcase their rooms, manage booking requests
-            and connect with guests through one simple platform.
-          </p>
-
-          <button
-            class="primary-button"
-            onclick="showHotelPartner()"
-          >
-            Become a CN7 Partner
-          </button>
-
-        </div>
-
-
-        <div class="partner-points">
-
-          <div class="partner-point">
-            <span>✓</span>
-            <div>
-              <strong>Showcase your hotel</strong>
-              <p>Display rooms, prices, photos and amenities.</p>
-            </div>
-          </div>
-
-          <div class="partner-point">
-            <span>✓</span>
-            <div>
-              <strong>Manage reservations</strong>
-              <p>Receive and respond to booking requests.</p>
-            </div>
-          </div>
-
-          <div class="partner-point">
-            <span>✓</span>
-            <div>
-              <strong>Understand your business</strong>
-              <p>Track bookings and customer activity.</p>
-            </div>
-          </div>
-
-        </div>
-
-      </div>
-
-    </section>
-
-  </main>
-
-
-  <!-- =========================
-       HOTEL DETAILS MODAL
-  ========================== -->
-  <div class="modal-overlay" id="hotelModal">
-
-    <div class="modal">
-
-      <button
-        class="modal-close"
-        onclick="closeModal('hotelModal')"
-        aria-label="Close"
-      >
-        ×
-      </button>
-
-      <span class="verified-badge modal-badge">
-        ✓ CN7 Verified
-      </span>
-
-      <h2 id="modalHotelName">
-        Hotel Name
-      </h2>
-
-      <div class="rating">
-        ★ 4.6
-        <span>Verified guest reviews</span>
-      </div>
-
-      <p class="modal-location">
-        📍 Asaba, Delta State
-      </p>
-
-      <hr>
-
-      <h3>Available rooms</h3>
-
-      <div class="room-option">
-
-        <div>
-          <strong>Standard Room</strong>
-          <p>Wi-Fi • Air conditioning • Private bathroom</p>
-        </div>
-
-        <div class="room-price">
-          ₦35,000/night
-        </div>
-
-      </div>
-
-      <div class="room-option">
-
-        <div>
-          <strong>Deluxe Room</strong>
-          <p>Wi-Fi • Breakfast • Air conditioning • Private bathroom</p>
-        </div>
-
-        <div class="room-price">
-          ₦45,000/night
-        </div>
-
-      </div>
-
-      <button
-        class="primary-button full-width"
-        onclick="openBooking()"
-      >
-        Request Booking
-      </button>
-
-      <p class="booking-note">
-        Pay directly at the hotel. Your booking is confirmed only after the
-        hotel accepts your request.
-      </p>
-
     </div>
 
-  </div>
+    <div class="features">
+      <div class="feature">
+        <div class="feature-icon">⚡</div>
+        <h3>Fast for Business</h3>
+        <p>Quick search and reliable confirmation</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">👨‍👩‍👧‍👦</div>
+        <h3>Family Friendly</h3>
+        <p>Clear filters and transparent pricing</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">📍</div>
+        <h3>Event Ready</h3>
+        <p>Easy availability near venues</p>
+      </div>
+    </div>
+  </section>
 
-
-  <!-- =========================
-       BOOKING MODAL
-  ========================== -->
-  <div class="modal-overlay" id="bookingModal">
-
-    <div class="modal">
-
-      <button
-        class="modal-close"
-        onclick="closeModal('bookingModal')"
-        aria-label="Close"
-      >
-        ×
-      </button>
-
-      <span class="section-label">REQUEST BOOKING</span>
-
-      <h2>Almost there.</h2>
-
-      <p>
-        Enter your details and the hotel will review your booking request.
-      </p>
-
-      <form id="bookingForm" onsubmit="submitBooking(event)">
-
-        <label for="guestName">
-          Full name
-        </label>
-
-        <input
-          type="text"
-          id="guestName"
-          required
-          placeholder="Your full name"
-        >
-
-
-        <label for="guestPhone">
-          Phone number
-        </label>
-
-        <input
-          type="tel"
-          id="guestPhone"
-          required
-          placeholder="0800 000 0000"
-        >
-
-
-        <label for="bookingRoom">
-          Room type
-        </label>
-
-        <select id="bookingRoom">
-
-          <option>
-            Standard Room
-          </option>
-
-          <option>
-            Deluxe Room
-          </option>
-
-        </select>
-
-
-        <label for="bookingCheckin">
-          Check-in
-        </label>
-
-        <input
-          type="date"
-          id="bookingCheckin"
-          required
-        >
-
-
-        <label for="bookingCheckout">
-          Check-out
-        </label>
-
-        <input
-          type="date"
-          id="bookingCheckout"
-          required
-        >
-
-
-        <button
-          type="submit"
-          class="primary-button full-width"
-        >
-          Submit Booking Request
-        </button>
-
-      </form>
-
-      <p class="booking-note">
-        This is a pay-at-hotel booking. No payment is taken by CN7 in Version
-        1.
-      </p>
-
+  <!-- HOTELS LIST -->
+  <section id="hotels" class="section">
+    <h2>Trusted Hotels in Asaba</h2>
+    
+    <div class="filters">
+      <select id="filter-type">
+        <option value="">All types</option>
+        <option value="business">Business</option>
+        <option value="family">Family</option>
+        <option value="luxury">Luxury</option>
+        <option value="event">Event</option>
+      </select>
+      <label><input type="checkbox" id="filter-wifi"> Wi-Fi</label>
+      <label><input type="checkbox" id="filter-pool"> Pool</label>
+      <label><input type="checkbox" id="filter-breakfast"> Breakfast</label>
+      <label><input type="checkbox" id="filter-parking"> Parking</label>
+      <button class="btn-primary" onclick="applyFilters()">Apply Filters</button>
     </div>
 
-  </div>
+    <div id="hotel-list" class="hotel-grid"></div>
+  </section>
 
+  <!-- HOTEL DETAIL -->
+  <section id="hotel-detail" class="section">
+    <button class="back-btn" onclick="showSection('hotels')">← Back to hotels</button>
+    <div id="detail-content"></div>
+  </section>
 
-  <!-- =========================
-       PARTNER MODAL
-  ========================== -->
-  <div class="modal-overlay" id="partnerModal">
-
-    <div class="modal">
-
-      <button
-        class="modal-close"
-        onclick="closeModal('partnerModal')"
-        aria-label="Close"
-      >
-        ×
-      </button>
-
-      <span class="section-label">
-        HOTEL PARTNERS
-      </span>
-
-      <h2>Join CN7.</h2>
-
-      <p>
-        We're starting in Asaba and working with hotels that want better
-        visibility and a simpler way to manage booking requests.
-      </p>
-
-      <form onsubmit="submitPartner(event)">
-
-        <label for="hotelName">
-          Hotel name
-        </label>
-
-        <input
-          type="text"
-          id="hotelName"
-          required
-          placeholder="Your hotel name"
-        >
-
-
-        <label for="managerName">
-          Your name
-        </label>
-
-        <input
-          type="text"
-          id="managerName"
-          required
-          placeholder="Manager / owner name"
-        >
-
-
-        <label for="hotelPhone">
-          Phone number
-        </label>
-
-        <input
-          type="tel"
-          id="hotelPhone"
-          required
-          placeholder="0800 000 0000"
-        >
-
-
-        <button
-          type="submit"
-          class="primary-button full-width"
-        >
-          Submit Interest
-        </button>
-
-      </form>
-
-      <p class="booking-note">
-        A CN7 team member will contact you about the partnership process.
-      </p>
-
+  <!-- HOTEL DASHBOARD -->
+  <section id="hotel-dashboard" class="section">
+    <h2>Hotel Dashboard</h2>
+    <div class="card">
+      <h3>Incoming Bookings</h3>
+      <div id="booking-list"></div>
     </div>
+  </section>
 
-  </div>
-
-
-  <!-- =========================
-       FOOTER
-  ========================== -->
-  <footer class="footer">
-
-    <div class="container footer-inner">
-
-      <div>
-
-        <div class="footer-logo">
-          CN<span>7</span>
-        </div>
-
-        <p>
-          Connect. Navigate. Stay.
-        </p>
-
+  <!-- ADMIN DASHBOARD -->
+  <section id="admin" class="section">
+    <h2>Admin Dashboard</h2>
+    <div class="admin-stats">
+      <div class="stat">
+        <span id="total-bookings">0</span>
+        <small>Total Bookings</small>
       </div>
-
-      <div class="footer-links">
-
-        <a href="#hotels">
-          Hotels
-        </a>
-
-        <a href="#how-it-works">
-          How It Works
-        </a>
-
-        <a href="#partners">
-          For Hotels
-        </a>
-
+      <div class="stat">
+        <span id="confirmed-rate">0%</span>
+        <small>Confirmation Rate</small>
       </div>
-
-      <div class="footer-copy">
-
-        © 2026 CN7 Technologies.
-        <br>
-        Starting in Asaba, Nigeria.
-
+      <div class="stat">
+        <span id="active-hotels">3</span>
+        <small>Active Hotels</small>
       </div>
-
     </div>
+    <div class="card">
+      <h3>Recent Activity</h3>
+      <div id="admin-activity"></div>
+    </div>
+  </section>
 
+  <footer>
+    <div class="footer-logo">CN<span class="logo-pin">7</span></div>
+    <p>Connect. Navigate. Stay.</p>
   </footer>
 
-
-  <!-- JAVASCRIPT -->
   <script src="script.js"></script>
-
 </body>
 </html>
-```
