@@ -9,15 +9,24 @@
 </head>
 <body>
   <nav class="navbar">
-    <div class="nav-brand" onclick="showSection('home')">CN<span class="logo-pin">7</span></div>
-    <div class="nav-links">
-      <button onclick="showSection('home')">Home</button>
-      <button onclick="showSection('hotels')">Hotels</button>
-      <button onclick="showSection('list-hotel')">List Your Hotel</button>
-      <button id="my-bookings-btn" onclick="showSection('my-bookings')" style="display:none;">My Bookings</button>
-      <button onclick="openHotelLogin()">Hotel</button>
-      <button onclick="openAdminLogin()">Admin</button>
-      <button id="auth-btn" onclick="toggleAuth()">Sign In</button>
+    <div class="nav-brand" onclick="showSection('home')">
+      <img src="logo.png" alt="CN7 Logo" class="nav-logo">
+    </div>
+
+    <button class="hamburger" id="hamburger" onclick="toggleMenu()" aria-label="Menu">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+
+    <div class="nav-links" id="nav-links">
+      <button onclick="showSection('home'); closeMenu()">Home</button>
+      <button onclick="showSection('hotels'); closeMenu()">Hotels</button>
+      <button onclick="showSection('list-hotel'); closeMenu()">List Your Hotel</button>
+      <button id="my-bookings-btn" onclick="showSection('my-bookings'); closeMenu()" style="display:none;">My Bookings</button>
+      <button onclick="openHotelLogin(); closeMenu()">Hotel</button>
+      <button onclick="openAdminLogin(); closeMenu()">Admin</button>
+      <button id="auth-btn" onclick="toggleAuth(); closeMenu()">Sign In</button>
       <button id="theme-toggle" onclick="toggleTheme()">🌙</button>
     </div>
   </nav>
@@ -193,7 +202,9 @@
   </div>
 
   <footer>
-    <div class="footer-logo">CN<span class="logo-pin">7</span></div>
+    <div class="footer-logo">
+      <img src="logo.png" alt="CN7" style="height:40px;">
+    </div>
     <p>Connect. Navigate. Stay.</p>
   </footer>
   <script src="script.js"></script>
