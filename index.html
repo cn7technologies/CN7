@@ -8,23 +8,20 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
+  <div id="toast" class="toast"></div>
 
-  <!-- NAVBAR -->
   <nav class="navbar">
     <div class="nav-brand" onclick="showSection('home')">
       <img src="logo.png" alt="CN7 Logo" class="nav-logo">
     </div>
-
     <button class="hamburger" id="hamburger" onclick="toggleMenu()" aria-label="Menu">
-      <span></span>
-      <span></span>
-      <span></span>
+      <span></span><span></span><span></span>
     </button>
-
     <div class="nav-links" id="nav-links">
       <button onclick="showSection('home'); closeMenu()">Home</button>
       <button onclick="showSection('hotels'); closeMenu()">Hotels</button>
       <button onclick="showSection('list-hotel'); closeMenu()">List Your Hotel</button>
+      <button onclick="showSection('about'); closeMenu()">About</button>
       <button id="my-bookings-btn" onclick="showSection('my-bookings'); closeMenu()" style="display:none;">My Bookings</button>
       <button onclick="openHotelLogin(); closeMenu()">Hotel</button>
       <button onclick="openAdminLogin(); closeMenu()">Admin</button>
@@ -36,11 +33,12 @@
   <!-- HOME -->
   <section id="home" class="section active">
     <div class="hero">
+      <p class="hero-kicker">Asaba hospitality marketplace</p>
       <h1>Connect. Navigate. Stay.</h1>
       <p class="tagline">Hospitality. Perfected.</p>
-      <p class="hero-desc">Find hotels in Asaba by area — GRA, NTA, DBS Road, Mariam Babangida and more.</p>
+      <p class="hero-desc">Search trusted hotels by area in Asaba. Compare rooms, request a booking, and pay at the hotel.</p>
       <div class="search-box">
-        <input type="text" id="search-location" value="Asaba" placeholder="Search area (e.g. GRA, NTA, DBS Road)">
+        <input type="text" id="search-location" value="Asaba" placeholder="Search area (GRA, NTA, DBS Road...)">
         <div class="date-group">
           <label>Check-in</label>
           <input type="date" id="checkin">
@@ -51,21 +49,34 @@
         </div>
         <button class="btn-primary" onclick="searchHotels()">Search Hotels</button>
       </div>
+      <div class="area-chips">
+        <button type="button" onclick="searchArea('GRA')">GRA</button>
+        <button type="button" onclick="searchArea('NTA')">NTA</button>
+        <button type="button" onclick="searchArea('DBS Road')">DBS Road</button>
+        <button type="button" onclick="searchArea('Mariam Babangida')">Mariam Babangida</button>
+        <button type="button" onclick="searchArea('Okpanam')">Okpanam</button>
+        <button type="button" onclick="searchArea('Summit')">Summit</button>
+      </div>
     </div>
 
-    <!-- CLICKABLE FEATURE CARDS -->
+    <div class="stats-row">
+      <div><strong id="home-hotel-count">6</strong><span>Verified hotels</span></div>
+      <div><strong>Pay at hotel</strong><span>No online payment needed</span></div>
+      <div><strong>Asaba first</strong><span>Search by local area</span></div>
+    </div>
+
     <div class="features">
-      <div class="feature" onclick="filterByType('business')" style="cursor:pointer;">
+      <div class="feature" onclick="filterByType('business')">
         <div class="feature-icon">⚡</div>
         <h3>Fast for Business</h3>
         <p>Quick search and reliable confirmation</p>
       </div>
-      <div class="feature" onclick="filterByType('family')" style="cursor:pointer;">
+      <div class="feature" onclick="filterByType('family')">
         <div class="feature-icon">👨‍👩‍👧‍👦</div>
         <h3>Family Friendly</h3>
         <p>Clear filters and transparent pricing</p>
       </div>
-      <div class="feature" onclick="filterByType('luxury')" style="cursor:pointer;">
+      <div class="feature" onclick="filterByType('luxury')">
         <div class="feature-icon">📍</div>
         <h3>Event Ready</h3>
         <p>Easy availability near venues</p>
@@ -111,7 +122,7 @@
         <option value="luxury">Luxury</option>
         <option value="event">Event</option>
       </select>
-      <input type="text" id="new-hotel-area" class="auth-input" placeholder="Area (e.g. GRA, NTA, DBS Road, Mariam Babangida)">
+      <input type="text" id="new-hotel-area" class="auth-input" placeholder="Area (e.g. GRA, NTA, DBS Road)">
       <input type="text" id="new-hotel-distance" class="auth-input" placeholder="Short location note">
       <textarea id="new-hotel-desc" class="auth-input" rows="3" placeholder="Short description"></textarea>
 
@@ -138,9 +149,38 @@
       <input type="url" id="new-hotel-image-url" class="auth-input" placeholder="Paste image URL">
       <input type="file" id="new-hotel-image-file" accept="image/*" class="auth-input">
       <img id="image-preview" alt="">
-
       <input type="text" id="new-hotel-contact" class="auth-input" placeholder="Contact name / phone">
       <button class="btn-primary full" onclick="submitHotel()">Submit Hotel for Review</button>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section id="about" class="section">
+    <h2>About CN7</h2>
+    <div class="about-grid">
+      <div class="card">
+        <h3>What we do</h3>
+        <p>CN7 helps guests find trusted hotels in Asaba and helps hotels receive booking requests without complicated software.</p>
+        <p style="margin-top:0.8rem;">Guests search by area, compare rooms, and request a stay. Payment is made at the hotel.</p>
+      </div>
+      <div class="card">
+        <h3>How it works</h3>
+        <ol class="how-list">
+          <li>Search by area</li>
+          <li>Compare hotels and rooms</li>
+          <li>Request a booking</li>
+          <li>Hotel confirms</li>
+          <li>Pay at the hotel</li>
+        </ol>
+      </div>
+    </div>
+    <div class="card" style="margin-top:1.4rem;">
+      <h3>Contact CN7</h3>
+      <p class="page-note">Send a message. This is a simple demo form for now.</p>
+      <input type="text" id="contact-name" class="auth-input" placeholder="Your name">
+      <input type="text" id="contact-phone" class="auth-input" placeholder="Phone or email">
+      <textarea id="contact-message" class="auth-input" rows="4" placeholder="Your message"></textarea>
+      <button class="btn-primary full" onclick="sendContact()">Send Message</button>
     </div>
   </section>
 
@@ -167,17 +207,14 @@
       <div class="stat"><span id="confirmed-rate">0%</span><small>Confirmation Rate</small></div>
       <div class="stat"><span id="active-hotels">0</span><small>Active Hotels</small></div>
     </div>
-
     <div class="card" style="margin-bottom:1.5rem;">
       <h3>Pending Hotel Applications</h3>
       <div id="pending-hotels"></div>
     </div>
-
     <div class="card" style="margin-bottom:1.5rem;">
       <h3>Active Hotels</h3>
       <div id="active-hotels-list"></div>
     </div>
-
     <div class="card">
       <h3>Recent Activity</h3>
       <div id="admin-activity"></div>
@@ -195,7 +232,6 @@
       <button class="btn-cancel" onclick="closeModal('auth-modal')">Cancel</button>
     </div>
   </div>
-
   <div id="hotel-login-modal" class="modal">
     <div class="modal-content">
       <h2>Hotel Login</h2>
@@ -206,7 +242,6 @@
       <button class="btn-cancel" onclick="closeModal('hotel-login-modal')">Cancel</button>
     </div>
   </div>
-
   <div id="admin-login-modal" class="modal">
     <div class="modal-content">
       <h2>Admin Login</h2>
@@ -218,12 +253,9 @@
   </div>
 
   <footer>
-    <div class="footer-logo">
-      <img src="logo.png" alt="CN7" style="height:40px;">
-    </div>
+    <img src="logo.png" alt="CN7" style="height:40px;">
     <p>Connect. Navigate. Stay.</p>
   </footer>
-
   <script src="script.js"></script>
 </body>
 </html>
