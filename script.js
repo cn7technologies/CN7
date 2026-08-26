@@ -170,4 +170,6 @@ function updateAdmin() {
   ).join('') || '<p>No activity yet.</p>';
 }
 
-document.addEventListener('DOMContentLoaded', () => showSection('home'));
+document.addEventListener('DOMContentLoaded', () => {
+  showSection('home');
+});
