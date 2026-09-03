@@ -1,3 +1,18 @@
+// ==========================================
+// CN7 SUPABASE CONNECTION
+// ==========================================
+
+const SUPABASE_URL = 'https://edxtubacwvtwtesqoqtg.supabase.co';
+
+const SUPABASE_PUBLISHABLE_KEY =
+  'sb_publishable_1MrV-CKv6b6umE6XcxrlSQ_mdgGPTSM';
+
+const supabase = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_PUBLISHABLE_KEY
+);
+
+console.log('CN7 Supabase client connected');
 const defaultHotels = [
   {id:1,name:"Afro View Hotel",code:"AFRO",type:"business",price:28000,rating:4.6,reviews:128,area:"GRA",distance:"5 min from city centre",amenities:["Wi-Fi","Parking","Breakfast","Pool"],image:"https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800",description:"Modern business hotel with reliable Wi-Fi and conference facilities.",rooms:[{name:"Standard Room",price:25000},{name:"Deluxe Room",price:28000},{name:"Executive Suite",price:45000}]},
   {id:2,name:"Delta Pearl Guest House",code:"DELTA",type:"family",price:22000,rating:4.3,reviews:86,area:"NTA",distance:"Near NTA Asaba",amenities:["Wi-Fi","Pool","Breakfast","Parking"],image:"https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800",description:"Comfortable family-friendly guest house with spacious rooms and a pool.",rooms:[{name:"Family Room",price:22000},{name:"Double Room",price:18000}]},
