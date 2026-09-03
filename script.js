@@ -11,6 +11,19 @@ const supabase = window.supabase.createClient(
   SUPABASE_URL,
   SUPABASE_PUBLISHABLE_KEY
 );
+async function testSupabaseConnection() {
+  const { data, error } = await supabase
+    .from('hotels')
+    .select('id, name')
+    .limit(1);
+
+  console.log('CN7 Supabase test:', {
+    data,
+    error
+  });
+}
+
+testSupabaseConnection();
 
 console.log('CN7 Supabase client connected');
 const defaultHotels = [
