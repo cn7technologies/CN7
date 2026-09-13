@@ -7,8 +7,35 @@
   <link rel="stylesheet" href="styles.css">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
-<body>
+<body class="locked">
   <div id="toast" class="toast"></div>
+
+  <section id="landing" class="landing">
+    <div class="landing-left">
+      <img src="logo.png" alt="CN7" class="landing-logo">
+      <h1>CN7</h1>
+      <p>Connect. Navigate. Stay.</p>
+      <div class="landing-card">
+        <h2 id="auth-title">Sign In</h2>
+        <p class="modal-sub" id="auth-sub">Use your email and password</p>
+        <input type="text" id="auth-name" placeholder="Full Name" class="auth-input" style="display:none;">
+        <input type="tel" id="auth-phone" placeholder="Phone Number" class="auth-input" style="display:none;">
+        <input type="email" id="auth-email" placeholder="Email" class="auth-input">
+        <input type="password" id="auth-password" placeholder="Password" class="auth-input">
+        <select id="auth-role" class="auth-input" style="display:none;">
+          <option value="guest">I am a Guest</option>
+          <option value="hotel_owner">I am a Hotel Owner</option>
+        </select>
+        <button class="btn-primary full" id="auth-submit" onclick="handleAuth()">Sign In</button>
+        <button class="btn-cancel" type="button" onclick="toggleAuthMode()">Need an account? Sign up</button>
+        <button class="btn-cancel" type="button" onclick="handleForgotPassword()">Forgot password?</button>
+      </div>
+    </div>
+    <div class="landing-right">
+      <h2>Asaba hospitality marketplace</h2>
+      <p>Find a stay. List your hotel. Pay at the property.</p>
+    </div>
+  </section>
 
   <nav class="navbar">
     <div class="nav-brand" onclick="showSection('home')">
@@ -31,7 +58,7 @@
     </div>
   </nav>
 
-  <section id="home" class="section active">
+  <section id="home" class="section">
     <div class="hero">
       <p class="hero-kicker">Asaba hospitality marketplace</p>
       <h1>Connect. Navigate. Stay.</h1>
@@ -64,21 +91,9 @@
       <div><strong>Asaba first</strong><span>Search by local area</span></div>
     </div>
     <div class="features">
-      <div class="feature" onclick="filterByType('business')">
-        <div class="feature-icon">⚡</div>
-        <h3>Fast for Business</h3>
-        <p>Quick search and reliable confirmation</p>
-      </div>
-      <div class="feature" onclick="filterByType('family')">
-        <div class="feature-icon">👨‍👩‍👧‍👦</div>
-        <h3>Family Friendly</h3>
-        <p>Clear filters and transparent pricing</p>
-      </div>
-      <div class="feature" onclick="filterByType('luxury')">
-        <div class="feature-icon">📍</div>
-        <h3>Event Ready</h3>
-        <p>Easy availability near venues</p>
-      </div>
+      <div class="feature" onclick="filterByType('business')"><div class="feature-icon">⚡</div><h3>Fast for Business</h3><p>Quick search and reliable confirmation</p></div>
+      <div class="feature" onclick="filterByType('family')"><div class="feature-icon">👨‍👩‍👧‍👦</div><h3>Family Friendly</h3><p>Clear filters and transparent pricing</p></div>
+      <div class="feature" onclick="filterByType('luxury')"><div class="feature-icon">📍</div><h3>Event Ready</h3><p>Easy availability near venues</p></div>
     </div>
   </section>
 
@@ -123,7 +138,6 @@
       <input type="text" id="new-hotel-area" class="auth-input" placeholder="Area (e.g. GRA, NTA, DBS Road)">
       <input type="text" id="new-hotel-distance" class="auth-input" placeholder="Short location note">
       <textarea id="new-hotel-desc" class="auth-input" rows="3" placeholder="Short description"></textarea>
-
       <p class="form-label">Rooms & Prices</p>
       <div id="room-fields">
         <div class="room-row">
@@ -132,7 +146,6 @@
         </div>
       </div>
       <button type="button" id="add-room-btn" class="add-room-btn">+ Add another room</button>
-
       <p class="form-label">Amenities</p>
       <div class="amenity-checks">
         <label><input type="checkbox" value="Wi-Fi"> Wi-Fi</label>
@@ -144,7 +157,6 @@
         <label><input type="checkbox" value="Gym"> Gym</label>
         <label><input type="checkbox" value="Laundry"> Laundry</label>
       </div>
-
       <p class="form-label">Hotel Image</p>
       <input type="url" id="new-hotel-image-url" class="auth-input" placeholder="Paste image URL">
       <input type="file" id="new-hotel-image-file" accept="image/*" class="auth-input">
@@ -203,59 +215,10 @@
       <div class="stat"><span id="confirmed-rate">0%</span><small>Confirmation Rate</small></div>
       <div class="stat"><span id="active-hotels">0</span><small>Active Hotels</small></div>
     </div>
-    <div class="card" style="margin-bottom:1.5rem;">
-      <h3>Pending Hotel Applications</h3>
-      <div id="pending-hotels"></div>
-    </div>
-    <div class="card" style="margin-bottom:1.5rem;">
-      <h3>Active Hotels</h3>
-      <div id="active-hotels-list"></div>
-    </div>
-    <div class="card">
-      <h3>Recent Activity</h3>
-      <div id="admin-activity"></div>
-    </div>
+    <div class="card" style="margin-bottom:1.5rem;"><h3>Pending Hotel Applications</h3><div id="pending-hotels"></div></div>
+    <div class="card" style="margin-bottom:1.5rem;"><h3>Active Hotels</h3><div id="active-hotels-list"></div></div>
+    <div class="card"><h3>Recent Activity</h3><div id="admin-activity"></div></div>
   </section>
-
-  <div id="auth-modal" class="modal">
-    <div class="modal-content">
-      <h2 id="auth-title">Sign In</h2>
-      <p class="modal-sub" id="auth-sub">Use your email and password</p>
-      <input type="text" id="auth-name" placeholder="Full Name" class="auth-input" style="display:none;">
-      <input type="tel" id="auth-phone" placeholder="Phone Number" class="auth-input" style="display:none;">
-      <input type="email" id="auth-email" placeholder="Email" class="auth-input">
-      <input type="password" id="auth-password" placeholder="Password" class="auth-input">
-      <select id="auth-role" class="auth-input" style="display:none;">
-        <option value="guest">I am a Guest</option>
-        <option value="hotel_owner">I am a Hotel Owner</option>
-      </select>
-      <button class="btn-primary full" id="auth-submit" onclick="handleAuth()">Sign In</button>
-      <button class="btn-cancel" type="button" onclick="toggleAuthMode()">Need an account? Sign up</button>
-      <button class="btn-cancel" type="button" onclick="handleForgotPassword()">Forgot password?</button>
-      <button class="btn-cancel" onclick="closeModal('auth-modal')">Cancel</button>
-    </div>
-  </div>
-
-  <div id="hotel-login-modal" class="modal">
-    <div class="modal-content">
-      <h2>Hotel Login</h2>
-      <p class="modal-sub">Enter your Hotel Code and Password</p>
-      <input type="text" id="hotel-code" placeholder="Hotel Code" class="auth-input">
-      <input type="password" id="hotel-pass" placeholder="Password" class="auth-input">
-      <button class="btn-primary full" onclick="handleHotelLogin()">Login</button>
-      <button class="btn-cancel" onclick="closeModal('hotel-login-modal')">Cancel</button>
-    </div>
-  </div>
-
-  <div id="admin-login-modal" class="modal">
-    <div class="modal-content">
-      <h2>Admin Login</h2>
-      <p class="modal-sub">Enter Admin Password</p>
-      <input type="password" id="admin-pass" placeholder="Password" class="auth-input">
-      <button class="btn-primary full" onclick="handleAdminLogin()">Login</button>
-      <button class="btn-cancel" onclick="closeModal('admin-login-modal')">Cancel</button>
-    </div>
-  </div>
 
   <footer>
     <img src="logo.png" alt="CN7" style="height:40px;">
