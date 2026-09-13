@@ -18,19 +18,19 @@
       <span></span><span></span><span></span>
     </button>
     <div class="nav-links" id="nav-links">
-      <button onclick="showSection('home'); closeMenu()">Home</button>
-      <button onclick="showSection('hotels'); closeMenu()">Hotels</button>
-      <button onclick="showSection('list-hotel'); closeMenu()">List Your Hotel</button>
-      <button onclick="showSection('about'); closeMenu()">About</button>
+      <button id="nav-home" onclick="showSection('home'); closeMenu()">Home</button>
+      <button id="nav-hotels" onclick="showSection('hotels'); closeMenu()">Hotels</button>
+      <button id="nav-list-hotel" onclick="showSection('list-hotel'); closeMenu()">List Your Hotel</button>
+      <button id="nav-owner" onclick="showSection('hotel-dashboard'); closeMenu()" style="display:none;">My Hotel</button>
+      <button id="nav-about" onclick="showSection('about'); closeMenu()">About</button>
       <button id="my-bookings-btn" onclick="showSection('my-bookings'); closeMenu()" style="display:none;">My Bookings</button>
-      <button onclick="openHotelLogin(); closeMenu()">Hotel</button>
-      <button onclick="openAdminLogin(); closeMenu()">Admin</button>
+      <button id="nav-hotel-login" onclick="openHotelLogin(); closeMenu()">Hotel</button>
+      <button id="nav-admin-login" onclick="openAdminLogin(); closeMenu()">Admin</button>
       <button id="auth-btn" onclick="toggleAuth(); closeMenu()">Sign In</button>
       <button id="theme-toggle" onclick="toggleTheme()">🌙</button>
     </div>
   </nav>
 
-  <!-- HOME -->
   <section id="home" class="section active">
     <div class="hero">
       <p class="hero-kicker">Asaba hospitality marketplace</p>
@@ -58,13 +58,11 @@
         <button type="button" onclick="searchArea('Summit')">Summit</button>
       </div>
     </div>
-
     <div class="stats-row">
       <div><strong id="home-hotel-count">6</strong><span>Verified hotels</span></div>
       <div><strong>Pay at hotel</strong><span>No online payment needed</span></div>
       <div><strong>Asaba first</strong><span>Search by local area</span></div>
     </div>
-
     <div class="features">
       <div class="feature" onclick="filterByType('business')">
         <div class="feature-icon">⚡</div>
@@ -84,7 +82,6 @@
     </div>
   </section>
 
-  <!-- HOTELS -->
   <section id="hotels" class="section">
     <h2>Trusted Hotels in Asaba</h2>
     <div class="filters">
@@ -93,23 +90,24 @@
         <option value="business">Business</option>
         <option value="family">Family</option>
         <option value="luxury">Luxury</option>
+        <option value="event">Event</option>
       </select>
       <label><input type="checkbox" id="filter-wifi"> Wi-Fi</label>
       <label><input type="checkbox" id="filter-pool"> Pool</label>
       <label><input type="checkbox" id="filter-breakfast"> Breakfast</label>
       <label><input type="checkbox" id="filter-parking"> Parking</label>
+      <label><input type="checkbox" id="filter-gym"> Gym</label>
+      <label><input type="checkbox" id="filter-laundry"> Laundry</label>
       <button class="btn-primary" onclick="applyFilters()">Apply Filters</button>
     </div>
     <div id="hotel-list" class="hotel-grid"></div>
   </section>
 
-  <!-- HOTEL DETAIL -->
   <section id="hotel-detail" class="section">
     <button class="back-btn" onclick="showSection('hotels')">← Back to hotels</button>
     <div id="detail-content"></div>
   </section>
 
-  <!-- LIST YOUR HOTEL -->
   <section id="list-hotel" class="section">
     <h2>List Your Hotel on CN7</h2>
     <p class="page-note">Submit your hotel for review. After approval, guests can find and book you.</p>
@@ -143,6 +141,8 @@
         <label><input type="checkbox" value="Parking"> Parking</label>
         <label><input type="checkbox" value="Restaurant"> Restaurant</label>
         <label><input type="checkbox" value="AC"> Air Conditioning</label>
+        <label><input type="checkbox" value="Gym"> Gym</label>
+        <label><input type="checkbox" value="Laundry"> Laundry</label>
       </div>
 
       <p class="form-label">Hotel Image</p>
@@ -154,7 +154,6 @@
     </div>
   </section>
 
-  <!-- ABOUT -->
   <section id="about" class="section">
     <h2>About CN7</h2>
     <div class="about-grid">
@@ -184,13 +183,11 @@
     </div>
   </section>
 
-  <!-- MY BOOKINGS -->
   <section id="my-bookings" class="section">
     <h2>My Bookings</h2>
     <div id="my-bookings-list" class="card"></div>
   </section>
 
-  <!-- HOTEL DASHBOARD -->
   <section id="hotel-dashboard" class="section">
     <h2 id="hotel-dashboard-title">Hotel Dashboard</h2>
     <div class="card">
@@ -199,7 +196,6 @@
     </div>
   </section>
 
-  <!-- ADMIN -->
   <section id="admin" class="section">
     <h2>Admin Dashboard</h2>
     <div class="admin-stats">
@@ -221,28 +217,25 @@
     </div>
   </section>
 
-  <!-- MODALS -->
-    <div id="auth-modal" class="modal">
+  <div id="auth-modal" class="modal">
     <div class="modal-content">
       <h2 id="auth-title">Sign In</h2>
       <p class="modal-sub" id="auth-sub">Use your email and password</p>
-
       <input type="text" id="auth-name" placeholder="Full Name" class="auth-input" style="display:none;">
       <input type="tel" id="auth-phone" placeholder="Phone Number" class="auth-input" style="display:none;">
       <input type="email" id="auth-email" placeholder="Email" class="auth-input">
       <input type="password" id="auth-password" placeholder="Password" class="auth-input">
-
       <select id="auth-role" class="auth-input" style="display:none;">
         <option value="guest">I am a Guest</option>
         <option value="hotel_owner">I am a Hotel Owner</option>
       </select>
-
       <button class="btn-primary full" id="auth-submit" onclick="handleAuth()">Sign In</button>
       <button class="btn-cancel" type="button" onclick="toggleAuthMode()">Need an account? Sign up</button>
       <button class="btn-cancel" type="button" onclick="handleForgotPassword()">Forgot password?</button>
       <button class="btn-cancel" onclick="closeModal('auth-modal')">Cancel</button>
     </div>
   </div>
+
   <div id="hotel-login-modal" class="modal">
     <div class="modal-content">
       <h2>Hotel Login</h2>
@@ -253,6 +246,7 @@
       <button class="btn-cancel" onclick="closeModal('hotel-login-modal')">Cancel</button>
     </div>
   </div>
+
   <div id="admin-login-modal" class="modal">
     <div class="modal-content">
       <h2>Admin Login</h2>
@@ -268,6 +262,6 @@
     <p>Connect. Navigate. Stay.</p>
   </footer>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="script.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
