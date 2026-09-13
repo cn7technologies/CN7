@@ -6,10 +6,10 @@ const SUPABASE_URL = 'https://edxtubacwvtwtesqoqtg.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY =
   'sb_publishable_1MrV-CKv6b6umE6XcxrlSQ_mdgGPTSM';
 
-let supabase = null;
+let db = null;
 
 if (window.supabase && typeof window.supabase.createClient === 'function') {
-  supabase = window.supabase.createClient(
+  db = window.supabase.createClient(
     SUPABASE_URL,
     SUPABASE_PUBLISHABLE_KEY
   );
@@ -19,8 +19,8 @@ if (window.supabase && typeof window.supabase.createClient === 'function') {
 }
 
 async function testSupabaseConnection() {
-  if (!supabase) return;
-  const { data, error } = await supabase
+  if (!db) return;
+  const { data, error } = await db
     .from('hotels')
     .select('id, name')
     .limit(1);
