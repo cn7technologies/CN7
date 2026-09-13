@@ -520,7 +520,7 @@ function setupImagePreview() {
   });
 }
 
-function submitHotel() {
+async function submitHotel() {
   const name = document.getElementById('new-hotel-name').value.trim();
   const type = document.getElementById('new-hotel-type').value;
   const area = document.getElementById('new-hotel-area').value.trim();
@@ -529,34 +529,119 @@ function submitHotel() {
   const contact = document.getElementById('new-hotel-contact').value.trim();
   const imageUrl = document.getElementById('new-hotel-image-url').value.trim();
   const amenities = [...document.querySelectorAll('.amenity-checks input:checked')].map(i => i.value);
-  const image = uploadedImage || imageUrl || 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800';
+  const image = imageUrl || 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800';
   const rooms = [];
   document.querySelectorAll('#room-fields .room-row').forEach(row => {
     const roomName = row.querySelector('.room-name').value.trim();
     const roomPrice = row.querySelector('.room-price').value;
-    if (roomName && roomPrice) rooms.push({name: roomName, price: Number(roomPrice)});
+    if (roomName && roomPrice) rooms.push({ name: roomName, price: Number(roomPrice) });
   });
-  if (!name || !type || !area || !distance || !description || !contact) return showToast('Please fill all required fields');
+
+  if (!name || !type || !area || !distance || !description || !contact) {
+    return showToast('Please fill all required fields');
+  }
   if (!rooms.length) return showToast('Add at least one room and price');
-  pendingHotels.push({id:Date.now(), name, type, area, price:Math.min(...rooms.map(r=>r.price)), distance, description, amenities, image, contact, rooms, status:'pending', date:new Date().toLocaleString()});
+  if (!currentUser) {
+    showToast('Sign in first');
+    toggleAuth();
+    return;
+  }
+
+  const code = name.replace(/[^A-Za-z]/g, '').slice(0, 5).toUpperCase() || 'HOTEL';
+
+  if (db && currentUser.id) {
+    const { data: hotel, error } = await db.from('hotels').insert({
+      owner_id: currentUser.id,
+      name,
+      code,
+      type,
+      area,
+      distance,
+      description,
+      image_url: image,
+      amenities,
+      verified: false,
+      active: false
+    }).select('id').single();
+
+    if (error) return showToast(error.message);
+
+    const { error: roomErr } = await db.from('rooms').insert(
+      rooms.map(r => ({ hotel_id: hotel.id, name: r.name, price: r.price }))
+    );
+    if (roomErr) return showToast(roomErr.message);
+
+    showToast('Hotel saved. Waiting for admin approval.');
+    showSection('hotel-dashboard');
+    return;
+  }
+
+  pendingHotels.push({
+    id: Date.now(),
+    name,
+    type,
+    area,
+    price: Math.min(...rooms.map(r => r.price)),
+    distance,
+    description,
+    amenities,
+    image,
+    contact,
+    rooms,
+    status: 'pending',
+    date: new Date().toLocaleString()
+  });
   localStorage.setItem('cn7_pending_hotels', JSON.stringify(pendingHotels));
-  uploadedImage = '';
   showToast('Hotel submitted for review');
 }
 
-function approveHotel(id) {
+async function approveHotel(id) {
   const pending = pendingHotels.find(h => h.id === id);
-  if (!pending) return;
-  const code = pending.name.replace(/[^A-Za-z]/g,'').slice(0,5).toUpperCase() || 'HOTEL';
-  extraHotels.push({id:pending.id,name:pending.name,code,type:pending.type,area:pending.area||'Asaba',price:pending.price,rating:4.5,reviews:0,distance:pending.distance,amenities:pending.amenities,image:pending.image,description:pending.description,rooms:pending.rooms||[{name:'Standard Room',price:pending.price}]});
-  pendingHotels = pendingHotels.filter(h => h.id !== id);
-  localStorage.setItem('cn7_extra_hotels', JSON.stringify(extraHotels));
-  localStorage.setItem('cn7_pending_hotels', JSON.stringify(pendingHotels));
-  refreshHotels();
+
+  if (db) {
+    const name = pending ? pending.name : null;
+    if (name) {
+      const { error } = await db
+        .from('hotels')
+        .update({ verified: true, active: true })
+        .eq('name', name);
+      if (error) showToast(error.message);
+    }
+    if (currentUser && currentUser.id) {
+      await db.from('profiles').update({ status: 'active' }).eq('id', currentUser.id);
+      currentUser.status = 'active';
+      localStorage.setItem('cn7_user', JSON.stringify(currentUser));
+    }
+  }
+
+  if (pending) {
+    const code = pending.name.replace(/[^A-Za-z]/g, '').slice(0, 5).toUpperCase() || 'HOTEL';
+    extraHotels.push({
+      id: pending.id,
+      name: pending.name,
+      code,
+      type: pending.type,
+      area: pending.area || 'Asaba',
+      price: pending.price,
+      rating: 4.5,
+      reviews: 0,
+      distance: pending.distance,
+      amenities: pending.amenities,
+      image: pending.image,
+      description: pending.description,
+      rooms: pending.rooms || [{ name: 'Standard Room', price: pending.price }]
+    });
+    pendingHotels = pendingHotels.filter(h => h.id !== id);
+    localStorage.setItem('cn7_extra_hotels', JSON.stringify(extraHotels));
+    localStorage.setItem('cn7_pending_hotels', JSON.stringify(pendingHotels));
+    alert('Approved!\nHotel Code: ' + code);
+  }
+
+  await refreshHotels();
   updateAdmin();
-  showToast('Approved. Code: ' + code);
-  alert('Approved!\nHotel Code: ' + code + '\nPassword: hotel123');
+  showToast('Approved');
 }
+
 function rejectHotel(id) {
   pendingHotels = pendingHotels.filter(h => h.id !== id);
   localStorage.setItem('cn7_pending_hotels', JSON.stringify(pendingHotels));
