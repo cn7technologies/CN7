@@ -243,14 +243,68 @@ function updateAuthUI() {
 
 async function renderOwnerDashboard() {
   const list = document.getElementById('booking-list');
-  if (!list || !currentUser || currentUser.role !== 'hotel_owner') return;
+  if (!list || !currentUser) return;
+
+  if (currentUser.role !== 'hotel_owner') {
+    list.innerHTML = '<p style="color:var(--muted)">This page is for hotel owners.</p>';
+    return;
+  }
 
   if (currentUser.status === 'pending') {
     list.innerHTML = `
       <p><strong>Your owner account is waiting for admin approval.</strong></p>
-      <p style="color:var(--muted);margin-top:.6rem">You can prepare your hotel below. Guests will not see it until an admin verifies you and the listing.</p>
+      <p style="color:var(--muted);margin-top:.6rem">You can add your hotel now. Guests will not see it until an admin approves you.</p>
       <button class="btn-primary" style="margin-top:1rem" onclick="showSection('list-hotel')">Add / update my hotel</button>`;
     return;
+  }
+
+  if (!db) {
+    list.innerHTML = '<p style="color:var(--muted)">Supabase is not connected.</p>';
+    return;
+  }
+
+  const { data: myHotels, error } = await db
+    .from('hotels')
+    .select('*, rooms(*)')
+    .eq('owner_id', currentUser.id);
+
+  if (error) {
+    console.log('Owner hotel error', error);
+    list.innerHTML = `
+      <p>No hotel listed yet.</p>
+      <p style="color:var(--muted);margin-top:.4rem">${error.message}</p>
+      <button class="btn-primary" style="margin-top:1rem" onclick="showSection('list-hotel')">List my hotel</button>`;
+    return;
+  }
+
+  if (!myHotels || !myHotels.length) {
+    list.innerHTML = `
+      <p>No hotel listed yet.</p>
+      <button class="btn-primary" style="margin-top:1rem" onclick="showSection('list-hotel')">List my hotel</button>`;
+    return;
+  }
+
+  currentHotel = mapHotel(myHotels[0]);
+
+  const { data: hotelBookings } = await db
+    .from('bookings')
+    .select('*')
+    .eq('hotel_id', currentHotel.id)
+    .order('created_at', { ascending: false });
+
+  const rows = hotelBookings || [];
+  list.innerHTML = `
+    <p><strong>${currentHotel.name}</strong> · ${currentHotel.active && currentHotel.verified ? 'Live' : 'Waiting for approval'}</p>
+    <p style="color:var(--muted);margin:.4rem 0 1rem">${(currentHotel.rooms || []).length} rooms</p>
+    <button class="btn-primary" onclick="showSection('list-hotel')">Manage hotel</button>
+    <h3 style="margin:1.2rem 0 .7rem">Incoming bookings</h3>
+    ${rows.length ? rows.map(b => `
+      <div style="border:1px solid var(--border);padding:1rem;border-radius:10px;margin-bottom:1rem">
+        <strong>${b.guest_name}</strong> · ${b.guest_phone}<br>
+        ${b.check_in} to ${b.check_out}<br>
+        ₦${Number(b.price).toLocaleString()} · <span class="status ${b.status}">${b.status}</span>
+      </div>`).join('') : '<p style="color:var(--muted)">No bookings yet.</p>'}`;
+}
   }
 
   if (!db) {
