@@ -222,13 +222,24 @@
   </section>
 
   <!-- MODALS -->
-  <div id="auth-modal" class="modal">
+    <div id="auth-modal" class="modal">
     <div class="modal-content">
-      <h2>Sign In</h2>
-      <p class="modal-sub">Enter your details to continue</p>
-      <input type="text" id="auth-name" placeholder="Full Name" class="auth-input">
-      <input type="tel" id="auth-phone" placeholder="Phone Number" class="auth-input">
-      <button class="btn-primary full" onclick="handleAuth()">Continue</button>
+      <h2 id="auth-title">Sign In</h2>
+      <p class="modal-sub" id="auth-sub">Use your email and password</p>
+
+      <input type="text" id="auth-name" placeholder="Full Name" class="auth-input" style="display:none;">
+      <input type="tel" id="auth-phone" placeholder="Phone Number" class="auth-input" style="display:none;">
+      <input type="email" id="auth-email" placeholder="Email" class="auth-input">
+      <input type="password" id="auth-password" placeholder="Password" class="auth-input">
+
+      <select id="auth-role" class="auth-input" style="display:none;">
+        <option value="guest">I am a Guest</option>
+        <option value="hotel_owner">I am a Hotel Owner</option>
+      </select>
+
+      <button class="btn-primary full" id="auth-submit" onclick="handleAuth()">Sign In</button>
+      <button class="btn-cancel" type="button" onclick="toggleAuthMode()">Need an account? Sign up</button>
+      <button class="btn-cancel" type="button" onclick="handleForgotPassword()">Forgot password?</button>
       <button class="btn-cancel" onclick="closeModal('auth-modal')">Cancel</button>
     </div>
   </div>
