@@ -305,44 +305,6 @@ async function renderOwnerDashboard() {
         ₦${Number(b.price).toLocaleString()} · <span class="status ${b.status}">${b.status}</span>
       </div>`).join('') : '<p style="color:var(--muted)">No bookings yet.</p>'}`;
 }
-  }
-
-  if (!db) {
-    list.innerHTML = '<p style="color:var(--muted)">Supabase is not connected.</p>';
-    return;
-  }
-
-  const { data: myHotels, error } = await db
-    .from('hotels')
-    .select('*, rooms(*), bookings(*)')
-    .eq('owner_id', currentUser.id);
-
-  if (error) {
-    list.innerHTML = '<p style="color:var(--muted)">Could not load your hotel.</p>';
-    return;
-  }
-
-  if (!myHotels || !myHotels.length) {
-    list.innerHTML = `
-      <p>No hotel listed yet.</p>
-      <button class="btn-primary" style="margin-top:1rem" onclick="showSection('list-hotel')">List my hotel</button>`;
-    return;
-  }
-
-  currentHotel = mapHotel(myHotels[0]);
-  const hotelBookings = myHotels[0].bookings || [];
-  list.innerHTML = `
-    <p><strong>${currentHotel.name}</strong> · ${currentHotel.active && currentHotel.verified ? 'Live' : 'Waiting for approval'}</p>
-    <p style="color:var(--muted);margin:.4rem 0 1rem">${(currentHotel.rooms || []).length} rooms</p>
-    <button class="btn-primary" onclick="showSection('list-hotel')">Manage hotel</button>
-    <h3 style="margin:1.2rem 0 .7rem">Incoming bookings</h3>
-    ${hotelBookings.length ? hotelBookings.map(b => `
-      <div style="border:1px solid var(--border);padding:1rem;border-radius:10px;margin-bottom:1rem">
-        <strong>${b.guest_name}</strong> · ${b.guest_phone}<br>
-        ${b.check_in} to ${b.check_out}<br>
-        ₦${Number(b.price).toLocaleString()} · <span class="status ${b.status}">${b.status}</span>
-      </div>`).join('') : '<p style="color:var(--muted)">No bookings yet.</p>'}`;
-}
 
 function openHotelLogin(){ document.getElementById('hotel-code').value=''; document.getElementById('hotel-pass').value=''; openModal('hotel-login-modal'); }
 function handleHotelLogin() {
@@ -429,7 +391,8 @@ async function filterByType(type) {
   const filtered = hotels.filter(h => h.type === type);
   showSection('hotels');
   renderHotels(filtered);
-  document.getElementById('filter-type').value = type;
+  const filterType = document.getElementById('filter-type');
+  if (filterType) filterType.value = type;
   if (!filtered.length) {
     document.getElementById('hotel-list').innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--muted)"><h3>No ${type} hotels found</h3><button class="btn-primary" style="margin-top:1rem" onclick="searchHotels()">Show All Hotels</button></div>`;
   }
@@ -502,6 +465,7 @@ async function bookRoom(hotelId, roomIndex) {
 
 function renderMyBookings() {
   const list = document.getElementById('my-bookings-list');
+  if (!list) return;
   if (!currentUser) { list.innerHTML = '<p style="color:var(--muted)">Please sign in.</p>'; return; }
   const my = bookings.filter(b => b.phone === currentUser.phone || b.guestName === currentUser.name);
   list.innerHTML = my.length ? my.map(b => `<div style="border:1px solid var(--border);padding:1rem;border-radius:10px;margin-bottom:1rem"><strong>${b.hotelName}</strong> — ${b.room}<br>₦${Number(b.price).toLocaleString()} · <span class="status ${b.status}">${b.status}</span><br><small>${b.date}</small></div>`).join('') : '<p style="color:var(--muted)">No bookings yet.</p>';
@@ -509,6 +473,7 @@ function renderMyBookings() {
 
 function renderHotelBookings() {
   const list = document.getElementById('booking-list');
+  if (!list) return;
   if (!currentHotel) { list.innerHTML = '<p style="color:var(--muted)">Please login as a hotel.</p>'; return; }
   const hotelBookings = bookings.filter(b => b.hotelId === currentHotel.id);
   if (!hotelBookings.length) { list.innerHTML = '<p style="color:var(--muted)">No bookings for your hotel yet.</p>'; return; }
@@ -623,10 +588,14 @@ function sendContact() {
 }
 
 function updateAdmin() {
-  document.getElementById('total-bookings').textContent = bookings.length;
+  const total = document.getElementById('total-bookings');
+  const rate = document.getElementById('confirmed-rate');
+  const active = document.getElementById('active-hotels');
+  if (!total) return;
+  total.textContent = bookings.length;
   const confirmed = bookings.filter(b => b.status === 'confirmed').length;
-  document.getElementById('confirmed-rate').textContent = (bookings.length ? Math.round(confirmed / bookings.length * 100) : 0) + '%';
-  document.getElementById('active-hotels').textContent = hotels.length;
+  rate.textContent = (bookings.length ? Math.round(confirmed / bookings.length * 100) : 0) + '%';
+  active.textContent = hotels.length;
   document.getElementById('pending-hotels').innerHTML = pendingHotels.length ? pendingHotels.map(h => `
     <div style="border:1px solid var(--border);padding:1rem;border-radius:10px;margin-bottom:1rem">
       <strong>${h.name}</strong> · ${h.type} · ${h.area || 'Asaba'} · From ₦${Number(h.price).toLocaleString()}<br>
