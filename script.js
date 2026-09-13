@@ -9,10 +9,7 @@ const SUPABASE_PUBLISHABLE_KEY =
 let db = null;
 
 if (window.supabase && typeof window.supabase.createClient === 'function') {
-  db = window.supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_PUBLISHABLE_KEY
-  );
+  db = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
   console.log('CN7 Supabase client connected');
 } else {
   console.warn('Supabase library not loaded. Using local data only.');
@@ -20,14 +17,12 @@ if (window.supabase && typeof window.supabase.createClient === 'function') {
 
 async function testSupabaseConnection() {
   if (!db) return;
-  const { data, error } = await db
-    .from('hotels')
-    .select('id, name')
-    .limit(1);
+  const { data, error } = await db.from('hotels').select('id, name').limit(1);
   console.log('CN7 Supabase test:', { data, error });
 }
 
 testSupabaseConnection();
+
 const defaultHotels = [
   {id:1,name:"Afro View Hotel",code:"AFRO",type:"business",price:28000,rating:4.6,reviews:128,area:"GRA",distance:"5 min from city centre",amenities:["Wi-Fi","Parking","Breakfast","Pool"],image:"https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800",description:"Modern business hotel with reliable Wi-Fi and conference facilities.",rooms:[{name:"Standard Room",price:25000},{name:"Deluxe Room",price:28000},{name:"Executive Suite",price:45000}]},
   {id:2,name:"Delta Pearl Guest House",code:"DELTA",type:"family",price:22000,rating:4.3,reviews:86,area:"NTA",distance:"Near NTA Asaba",amenities:["Wi-Fi","Pool","Breakfast","Parking"],image:"https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800",description:"Comfortable family-friendly guest house with spacious rooms and a pool.",rooms:[{name:"Family Room",price:22000},{name:"Double Room",price:18000}]},
@@ -45,6 +40,7 @@ let bookings = JSON.parse(localStorage.getItem('cn7_bookings') || '[]');
 let currentUser = JSON.parse(localStorage.getItem('cn7_user') || 'null');
 let currentHotel = null;
 let uploadedImage = '';
+let authMode = 'signin';
 
 function showToast(msg) {
   const t = document.getElementById('toast');
@@ -74,30 +70,124 @@ function closeMenu(){ document.getElementById('nav-links').classList.remove('ope
 
 function toggleAuth() {
   if (currentUser) {
-    if (confirm('Sign out?')) {
-      currentUser = null;
-      localStorage.removeItem('cn7_user');
-      updateAuthUI();
-      showSection('home');
-      showToast('Signed out');
-    }
-  } else openModal('auth-modal');
+    if (confirm('Sign out?')) signOutUser();
+  } else {
+    setAuthMode('signin');
+    openModal('auth-modal');
+  }
 }
-function handleAuth() {
-  const name = document.getElementById('auth-name').value.trim();
-  const phone = document.getElementById('auth-phone').value.trim();
-  if (!name || !phone) return showToast('Please enter name and phone');
-  currentUser = { name, phone };
-  localStorage.setItem('cn7_user', JSON.stringify(currentUser));
+
+function setAuthMode(mode) {
+  authMode = mode;
+  const isSignup = mode === 'signup';
+  const title = document.getElementById('auth-title');
+  const sub = document.getElementById('auth-sub');
+  const name = document.getElementById('auth-name');
+  const phone = document.getElementById('auth-phone');
+  const role = document.getElementById('auth-role');
+  const submit = document.getElementById('auth-submit');
+  if (title) title.textContent = isSignup ? 'Create account' : 'Sign In';
+  if (sub) sub.textContent = isSignup
+    ? 'Guests can book. Hotel owners wait for admin approval.'
+    : 'Use your email and password';
+  if (name) name.style.display = isSignup ? 'block' : 'none';
+  if (phone) phone.style.display = isSignup ? 'block' : 'none';
+  if (role) role.style.display = isSignup ? 'block' : 'none';
+  if (submit) submit.textContent = isSignup ? 'Create account' : 'Sign In';
+}
+
+function toggleAuthMode() {
+  setAuthMode(authMode === 'signin' ? 'signup' : 'signin');
+}
+
+async function handleAuth() {
+  if (!db) return showToast('Supabase is not connected');
+
+  const email = document.getElementById('auth-email').value.trim();
+  const password = document.getElementById('auth-password').value;
+  if (!email || !password) return showToast('Enter email and password');
+
+  if (authMode === 'signup') {
+    const name = document.getElementById('auth-name').value.trim();
+    const phone = document.getElementById('auth-phone').value.trim();
+    const role = document.getElementById('auth-role').value;
+    if (!name || !phone) return showToast('Enter name and phone');
+    if (password.length < 6) return showToast('Password must be at least 6 characters');
+
+    const { data, error } = await db.auth.signUp({
+      email,
+      password,
+      options: { data: { full_name: name, phone, role } }
+    });
+    if (error) return showToast(error.message);
+    if (!data.user) return showToast('Check your email to finish signup');
+    await loadSessionUser();
+    closeModal('auth-modal');
+    showToast(role === 'hotel_owner' ? 'Owner account created. Wait for admin approval.' : 'Welcome, ' + name.split(' ')[0]);
+    return;
+  }
+
+  const { error } = await db.auth.signInWithPassword({ email, password });
+  if (error) return showToast(error.message);
+  await loadSessionUser();
   closeModal('auth-modal');
-  updateAuthUI();
-  showToast('Welcome, ' + name.split(' ')[0]);
+  showToast('Welcome back');
 }
+
+async function handleForgotPassword() {
+  if (!db) return showToast('Supabase is not connected');
+  const email = document.getElementById('auth-email').value.trim();
+  if (!email) return showToast('Type your email first');
+  const { error } = await db.auth.resetPasswordForEmail(email);
+  if (error) return showToast(error.message);
+  showToast('Password reset email sent');
+}
+
+async function signOutUser() {
+  if (db) await db.auth.signOut();
+  currentUser = null;
+  localStorage.removeItem('cn7_user');
+  updateAuthUI();
+  showSection('home');
+  showToast('Signed out');
+}
+
+async function loadSessionUser() {
+  if (!db) return;
+  const { data: sessionData } = await db.auth.getUser();
+  const user = sessionData && sessionData.user;
+  if (!user) {
+    currentUser = null;
+    localStorage.removeItem('cn7_user');
+    updateAuthUI();
+    return;
+  }
+
+  const { data: profile } = await db.from('profiles').select('*').eq('id', user.id).single();
+
+  currentUser = {
+    id: user.id,
+    name: (profile && profile.full_name) || user.email,
+    phone: (profile && profile.phone) || '',
+    email: user.email,
+    role: (profile && profile.role) || 'guest',
+    status: (profile && profile.status) || 'active'
+  };
+  localStorage.setItem('cn7_user', JSON.stringify(currentUser));
+  updateAuthUI();
+}
+
 function updateAuthUI() {
   const btn = document.getElementById('auth-btn');
   const myBtn = document.getElementById('my-bookings-btn');
-  if (currentUser) { btn.textContent = 'Hi, ' + currentUser.name.split(' ')[0]; myBtn.style.display = 'inline-block'; }
-  else { btn.textContent = 'Sign In'; myBtn.style.display = 'none'; }
+  if (!btn || !myBtn) return;
+  if (currentUser) {
+    btn.textContent = 'Hi, ' + String(currentUser.name).split(' ')[0];
+    myBtn.style.display = 'inline-block';
+  } else {
+    btn.textContent = 'Sign In';
+    myBtn.style.display = 'none';
+  }
 }
 
 function openHotelLogin(){ document.getElementById('hotel-code').value=''; document.getElementById('hotel-pass').value=''; openModal('hotel-login-modal'); }
@@ -198,7 +288,7 @@ function renderHotels(list) {
         <div class="meta">★ ${h.rating} · ${h.reviews} reviews</div>
         <div class="meta">📍 ${h.area || 'Asaba'} · ${h.distance}</div>
         <div class="price">From ₦${Number(h.price).toLocaleString()} / night</div>
-        <div class="amenities">${h.amenities.map(a => `<span class="amenity">✓ ${a}</span>`).join('')}</div>
+        <div class="amenities">${(h.amenities || []).map(a => `<span class="amenity">✓ ${a}</span>`).join('')}</div>
         <div class="verified">Verified by CN7</div>
       </div>
     </div>`).join('');
@@ -223,7 +313,7 @@ function showHotelDetail(id) {
         <p><strong>Area:</strong> ${hotel.area || 'Asaba'}</p>
         <p><strong>Location:</strong> ${hotel.distance}</p>
         ${checkin && checkout ? `<p style="margin-top:.7rem"><strong>Stay:</strong> ${checkin} to ${checkout}</p>` : ''}
-        <div class="amenities" style="margin-top:1rem">${hotel.amenities.map(a => `<span class="amenity">✓ ${a}</span>`).join('')}</div>
+        <div class="amenities" style="margin-top:1rem">${(hotel.amenities || []).map(a => `<span class="amenity">✓ ${a}</span>`).join('')}</div>
       </div>
     </div>
     <h3 style="margin:1.4rem 0 1rem">Available Rooms</h3>
@@ -412,8 +502,10 @@ function updateAdmin() {
 document.addEventListener('DOMContentLoaded', function() {
   const saved = localStorage.getItem('cn7-theme') || 'dark';
   document.documentElement.setAttribute('data-theme', saved);
-  document.getElementById('theme-toggle').textContent = saved === 'dark' ? '🌙' : '☀️';
+  const themeBtn = document.getElementById('theme-toggle');
+  if (themeBtn) themeBtn.textContent = saved === 'dark' ? '🌙' : '☀️';
   updateAuthUI();
+  loadSessionUser();
   setupImagePreview();
   const addBtn = document.getElementById('add-room-btn');
   if (addBtn) addBtn.addEventListener('click', addRoomField);
