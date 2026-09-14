@@ -21,7 +21,10 @@
         <input type="text" id="auth-name" placeholder="Full Name" class="auth-input" style="display:none;">
         <input type="tel" id="auth-phone" placeholder="Phone Number" class="auth-input" style="display:none;">
         <input type="email" id="auth-email" placeholder="Email" class="auth-input">
-        <input type="password" id="auth-password" placeholder="Password" class="auth-input">
+        <div class="password-wrap">
+          <input type="password" id="auth-password" placeholder="Password" class="auth-input">
+          <button type="button" class="eye-btn" onclick="togglePassword()">Show</button>
+        </div>
         <select id="auth-role" class="auth-input" style="display:none;">
           <option value="guest">I am a Guest</option>
           <option value="hotel_owner">I am a Hotel Owner</option>
@@ -29,6 +32,11 @@
         <button class="btn-primary full" id="auth-submit" onclick="handleAuth()">Sign In</button>
         <button class="btn-cancel" type="button" onclick="toggleAuthMode()">Need an account? Sign up</button>
         <button class="btn-cancel" type="button" onclick="handleForgotPassword()">Forgot password?</button>
+        <div id="reset-box" style="display:none;margin-top:1rem;">
+          <h2>Set new password</h2>
+          <input type="password" id="new-password" placeholder="New password" class="auth-input">
+          <button class="btn-primary full" onclick="saveNewPassword()">Save new password</button>
+        </div>
       </div>
     </div>
     <div class="landing-right">
@@ -66,14 +74,8 @@
       <p class="hero-desc">Search trusted hotels by area in Asaba. Compare rooms, request a booking, and pay at the hotel.</p>
       <div class="search-box">
         <input type="text" id="search-location" value="Asaba" placeholder="Search area (GRA, NTA, DBS Road...)">
-        <div class="date-group">
-          <label>Check-in</label>
-          <input type="date" id="checkin">
-        </div>
-        <div class="date-group">
-          <label>Check-out</label>
-          <input type="date" id="checkout">
-        </div>
+        <div class="date-group"><label>Check-in</label><input type="date" id="checkin"></div>
+        <div class="date-group"><label>Check-out</label><input type="date" id="checkout"></div>
         <button class="btn-primary" onclick="searchHotels()">Search Hotels</button>
       </div>
       <div class="area-chips">
@@ -172,7 +174,6 @@
       <div class="card">
         <h3>What we do</h3>
         <p>CN7 helps guests find trusted hotels in Asaba and helps hotels receive booking requests without complicated software.</p>
-        <p style="margin-top:0.8rem;">Guests search by area, compare rooms, and request a stay. Payment is made at the hotel.</p>
       </div>
       <div class="card">
         <h3>How it works</h3>
@@ -187,7 +188,6 @@
     </div>
     <div class="card" style="margin-top:1.4rem;">
       <h3>Contact CN7</h3>
-      <p class="page-note">Send a message. This is a simple demo form for now.</p>
       <input type="text" id="contact-name" class="auth-input" placeholder="Your name">
       <input type="text" id="contact-phone" class="auth-input" placeholder="Phone or email">
       <textarea id="contact-message" class="auth-input" rows="4" placeholder="Your message"></textarea>
