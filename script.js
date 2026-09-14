@@ -222,12 +222,13 @@ function routeByRole(){
   if (!currentUser) { lockApp(); return; }
   unlockApp();
   if (currentUser.role === 'hotel_owner') {
-    const title = document.getElementById('hotel-dashboard-title');
-    if (title) title.textContent = 'My Hotel';
     showSection('hotel-dashboard');
     return;
   }
-  if (currentUser.role === 'admin') { showSection('admin'); return; }
+  if (currentUser.role === 'admin') {
+    showSection('admin');
+    return;
+  }
   showSection('home');
 }
 
@@ -355,26 +356,25 @@ async function applyFilters(){
     return true;
   }));
 }
-async function filterByType(type){ if (!currentUser) return requireLogin(); await refreshHotels(); showSection('hotels'); renderHotels(hotels.filter(h => h.type === type)); }
 function renderHotels(list){
   const container = document.getElementById('hotel-list');
   if (!container) return;
-  container.innerHTML = (list || []).map(h => '<div class="hotel-card" onclick="showHotelDetail(' + h.id + ')"><img src="' + h.image + '" alt="' + h.name + '"><div class="hotel-card-body"><h3>' + h.name + '</h3><div class="meta">📍 ' + (h.area || 'Asaba') + '</div><div class="price">From ₦' + Number(h.price).toLocaleString() + '</div></div></div>').join('');
+  container.innerHTML = (list || []).map(h => '<div class="hotel-card" onclick="showHotelDetail(' + JSON.stringify(String(h.id)) + ')"><img src="' + h.image + '" alt="' + h.name + '"><div class="hotel-card-body"><h3>' + h.name + '</h3><div class="meta">📍 ' + (h.area || 'Asaba') + '</div><div class="price">From ₦' + Number(h.price).toLocaleString() + '</div></div></div>').join('');
 }
 async function showHotelDetail(id){
   if (!currentUser) return requireLogin();
   await refreshHotels();
-  const hotel = hotels.find(h => h.id === id);
+  const hotel = hotels.find(h => String(h.id) === String(id));
   if (!hotel) return;
   showSection('hotel-detail');
   const rooms = hotel.rooms || [{name:'Standard Room', price:hotel.price}];
-  document.getElementById('detail-content').innerHTML = '<h2>' + hotel.name + '</h2><p>' + (hotel.description || '') + '</p>' + rooms.map((r,i) => '<div class="room-card"><div><strong>' + r.name + '</strong><br>₦' + Number(r.price).toLocaleString() + '</div><button class="btn-primary" onclick="bookRoom(' + hotel.id + ',' + i + ')">Request Booking</button></div>').join('');
+  document.getElementById('detail-content').innerHTML = '<h2>' + hotel.name + '</h2><p>' + (hotel.description || '') + '</p>' + rooms.map((r,i) => '<div class="room-card"><div><strong>' + r.name + '</strong><br>₦' + Number(r.price).toLocaleString() + '</div><button class="btn-primary" onclick="bookRoom(\'' + hotel.id + '\',' + i + ')">Request Booking</button></div>').join('');
 }
 async function bookRoom(hotelId, roomIndex){
   if (!currentUser) return requireLogin();
   if (currentUser.role !== 'guest') return showToast('Only guests can book');
   await refreshHotels();
-  const hotel = hotels.find(h => h.id === hotelId);
+  const hotel = hotels.find(h => String(h.id) === String(hotelId));
   const rooms = hotel.rooms || [{name:'Standard Room', price:hotel.price}];
   const room = rooms[roomIndex];
   bookings.push({id:Date.now(), hotelId:hotel.id, hotelName:hotel.name, room:room.name, price:room.price, guestName:currentUser.name, phone:currentUser.phone, status:'requested', date:new Date().toLocaleString()});
@@ -434,31 +434,57 @@ async function submitHotel(){
   showToast('Hotel saved. Waiting for admin approval.');
   showSection('hotel-dashboard');
 }
-async function approveHotel(id){
-  const pending = pendingHotels.find(h => h.id === id);
-  if (db && pending) await db.from('hotels').update({ verified: true, active: true }).eq('name', pending.name);
-  if (pending) { pendingHotels = pendingHotels.filter(h => h.id !== id); localStorage.setItem('cn7_pending_hotels', JSON.stringify(pendingHotels)); }
+
+async function updateAdmin() {
+  const total = document.getElementById('total-bookings');
+  if (!total) return;
+  let pending = [];
+  let liveHotels = hotels || [];
+  if (db) {
+    const { data: pendingRows } = await db.from('hotels').select('id, name, type, area, owner_id, verified, active').or('verified.eq.false,active.eq.false');
+    pending = pendingRows || [];
+    const { data: liveRows } = await db.from('hotels').select('id, name, type, area').eq('verified', true).eq('active', true);
+    if (liveRows) liveHotels = liveRows;
+  }
+  total.textContent = bookings.length;
+  const confirmed = bookings.filter(b => b.status === 'confirmed').length;
+  document.getElementById('confirmed-rate').textContent = (bookings.length ? Math.round(confirmed / bookings.length * 100) : 0) + '%';
+  document.getElementById('active-hotels').textContent = liveHotels.length;
+  document.getElementById('pending-hotels').innerHTML = pending.length
+    ? pending.map(h => '<div style="border:1px solid var(--border);padding:1rem;border-radius:10px;margin-bottom:1rem"><strong>' + h.name + '</strong> · ' + (h.type || '') + ' · ' + (h.area || 'Asaba') + '<br><button class="btn-primary" style="margin-top:.8rem" onclick="approveHotel(\'' + h.id + '\')">Approve</button> <button class="btn-cancel" onclick="rejectHotelDb(\'' + h.id + '\')">Reject</button></div>').join('')
+    : '<p style="color:var(--muted)">No pending applications.</p>';
+  document.getElementById('active-hotels-list').innerHTML = liveHotels.length
+    ? liveHotels.map(h => '<div style="padding:.6rem 0;border-bottom:1px solid var(--border)">' + h.name + ' · ' + (h.area || 'Asaba') + '</div>').join('')
+    : '<p style="color:var(--muted)">No active hotels.</p>';
+  document.getElementById('admin-activity').innerHTML = bookings.slice(-8).reverse().map(b => '<div style="padding:.6rem 0;border-bottom:1px solid var(--border)">' + b.guestName + ' → ' + b.hotelName + ' <span class="status ' + b.status + '">' + b.status + '</span></div>').join('') || '<p style="color:var(--muted)">No activity yet.</p>';
+}
+
+async function approveHotel(id) {
+  if (!db) return showToast('Supabase is not connected');
+  const { error } = await db.from('hotels').update({ verified: true, active: true }).eq('id', id);
+  if (error) return showToast(error.message);
+  const hotel = (await db.from('hotels').select('owner_id').eq('id', id).maybeSingle()).data;
+  if (hotel && hotel.owner_id) await db.from('profiles').update({ status: 'active' }).eq('id', hotel.owner_id);
+  showToast('Hotel approved');
   await refreshHotels();
   updateAdmin();
 }
-function rejectHotel(id){ pendingHotels = pendingHotels.filter(h => h.id !== id); localStorage.setItem('cn7_pending_hotels', JSON.stringify(pendingHotels)); updateAdmin(); }
-function unlistHotel(id){ extraHotels = extraHotels.filter(h => h.id !== id); localStorage.setItem('cn7_extra_hotels', JSON.stringify(extraHotels)); refreshHotels(); updateAdmin(); }
+
+async function rejectHotelDb(id) {
+  if (!db) return showToast('Supabase is not connected');
+  if (!confirm('Reject this listing?')) return;
+  const { error } = await db.from('hotels').update({ verified: false, active: false }).eq('id', id);
+  if (error) return showToast(error.message);
+  showToast('Listing rejected');
+  updateAdmin();
+}
+
 function sendContact(){
   const name = document.getElementById('contact-name').value.trim();
   const phone = document.getElementById('contact-phone').value.trim();
   const message = document.getElementById('contact-message').value.trim();
   if (!name || !phone || !message) return showToast('Please complete the contact form');
   showToast('Message sent. CN7 will get back to you.');
-}
-function updateAdmin(){
-  const total = document.getElementById('total-bookings');
-  if (!total) return;
-  total.textContent = bookings.length;
-  document.getElementById('confirmed-rate').textContent = '0%';
-  document.getElementById('active-hotels').textContent = hotels.length;
-  document.getElementById('pending-hotels').innerHTML = pendingHotels.length ? pendingHotels.map(h => '<div><strong>' + h.name + '</strong> <button class="btn-primary" onclick="approveHotel(' + h.id + ')">Approve</button></div>').join('') : '<p style="color:var(--muted)">No pending applications.</p>';
-  document.getElementById('active-hotels-list').innerHTML = hotels.map(h => '<div>' + h.name + '</div>').join('') || '<p style="color:var(--muted)">No active hotels.</p>';
-  document.getElementById('admin-activity').innerHTML = '<p style="color:var(--muted)">No activity yet.</p>';
 }
 
 document.addEventListener('DOMContentLoaded', function(){
