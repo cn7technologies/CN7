@@ -31,6 +31,7 @@ let currentUser = null;
 let currentHotel = null;
 let uploadedImage = '';
 let authMode = 'signin';
+let pendingPasswordReset = false;
 
 function pageHash(){ return window.location.hash || ''; }
 function isRecoveryLink(){ return pageHash().indexOf('type=recovery') !== -1; }
@@ -53,6 +54,7 @@ function lockApp(){ document.body.classList.add('locked'); }
 function unlockApp(){ document.body.classList.remove('locked'); }
 function requireLogin(){ lockApp(); setAuthMode('signin'); }
 function showResetBox(){
+  pendingPasswordReset = true;
   const box = document.getElementById('reset-box');
   if (box) box.style.display = 'block';
   lockApp();
@@ -71,6 +73,7 @@ async function saveNewPassword(){
   if (!password || password.length < 6) return showToast('Password must be at least 6 characters');
   const { error } = await db.auth.updateUser({ password });
   if (error) return showToast(error.message);
+  pendingPasswordReset = false;
   const box = document.getElementById('reset-box');
   if (box) box.style.display = 'none';
   if (window.history && window.history.replaceState) window.history.replaceState(null, '', window.location.pathname);
@@ -131,6 +134,7 @@ function toggleAuthMode(){ setAuthMode(authMode === 'signin' ? 'signup' : 'signi
 
 async function handleAuth(){
   if (!db) return showToast('Supabase is not connected');
+  if (pendingPasswordReset) return showToast('Set your new password first');
   const email = document.getElementById('auth-email').value.trim();
   const password = document.getElementById('auth-password').value;
   if (!email || !password) return showToast('Enter email and password');
@@ -171,7 +175,7 @@ async function finishLogin(user){
   };
   localStorage.setItem('cn7_user', JSON.stringify(currentUser));
   updateAuthUI();
-  if (isRecoveryLink()) { showResetBox(); return; }
+  if (pendingPasswordReset || isRecoveryLink()) { showResetBox(); return; }
   unlockApp();
   routeByRole();
 }
@@ -189,6 +193,7 @@ async function signOutUser(){
   if (db) await db.auth.signOut();
   currentUser = null;
   currentHotel = null;
+  pendingPasswordReset = false;
   localStorage.removeItem('cn7_user');
   updateAuthUI();
   lockApp();
@@ -197,11 +202,17 @@ async function signOutUser(){
 
 async function loadSessionUser(){
   if (isExpiredResetLink()) {
+    pendingPasswordReset = false;
     showToast('Reset link expired. Request a new one.');
     lockApp();
     setAuthMode('signin');
   }
   if (isRecoveryLink()) showResetBox();
+  if (db) {
+    db.auth.onAuthStateChange(function(event) {
+      if (event === 'PASSWORD_RECOVERY') showResetBox();
+    });
+  }
   if (!db) { currentUser = null; updateAuthUI(); lockApp(); return; }
   const { data } = await db.auth.getSession();
   const user = data && data.session && data.session.user;
@@ -210,8 +221,8 @@ async function loadSessionUser(){
 }
 
 function routeByRole(){
+  if (pendingPasswordReset || isRecoveryLink()) { showResetBox(); return; }
   if (!currentUser) { lockApp(); return; }
-  if (isRecoveryLink()) { showResetBox(); return; }
   unlockApp();
   if (currentUser.role === 'hotel_owner') {
     const title = document.getElementById('hotel-dashboard-title');
@@ -267,6 +278,7 @@ function openAdminLogin(){ if (!currentUser || currentUser.role !== 'admin') ret
 function handleAdminLogin(){ showToast('Use an admin account to sign in'); }
 
 async function showSection(id){
+  if (pendingPasswordReset) { showResetBox(); return; }
   if (!currentUser && PRIVATE_SECTIONS.includes(id)) { requireLogin(); return; }
   if (currentUser && currentUser.role === 'hotel_owner' && (id === 'hotels' || id === 'hotel-detail' || id === 'my-bookings' || id === 'admin')) { showToast('Hotel owners use My Hotel'); id = 'hotel-dashboard'; }
   if (currentUser && currentUser.role === 'guest' && (id === 'hotel-dashboard' || id === 'admin' || id === 'list-hotel')) { showToast('Guests cannot open that page'); id = 'home'; }
