@@ -49,9 +49,7 @@
     <div class="nav-brand" onclick="showSection('home')">
       <img src="logo.png" alt="CN7 Logo" class="nav-logo">
     </div>
-    <button class="hamburger" id="hamburger" onclick="toggleMenu()" aria-label="Menu">
-      <span></span><span></span><span></span>
-    </button>
+    <button class="hamburger" id="hamburger" onclick="toggleMenu()" aria-label="Menu"><span></span><span></span><span></span></button>
     <div class="nav-links" id="nav-links">
       <button id="nav-home" onclick="showSection('home'); closeMenu()">Home</button>
       <button id="nav-hotels" onclick="showSection('hotels'); closeMenu()">Hotels</button>
@@ -73,7 +71,7 @@
       <p class="tagline">Hospitality. Perfected.</p>
       <p class="hero-desc">Search trusted hotels by area in Asaba. Compare rooms, request a booking, and pay at the hotel.</p>
       <div class="search-box">
-        <input type="text" id="search-location" value="Asaba" placeholder="Search area (GRA, NTA, DBS Road...)">
+        <input type="text" id="search-location" value="Asaba" placeholder="Search area">
         <div class="date-group"><label>Check-in</label><input type="date" id="checkin"></div>
         <div class="date-group"><label>Check-out</label><input type="date" id="checkout"></div>
         <button class="btn-primary" onclick="searchHotels()">Search Hotels</button>
@@ -91,11 +89,6 @@
       <div><strong id="home-hotel-count">6</strong><span>Verified hotels</span></div>
       <div><strong>Pay at hotel</strong><span>No online payment needed</span></div>
       <div><strong>Asaba first</strong><span>Search by local area</span></div>
-    </div>
-    <div class="features">
-      <div class="feature" onclick="filterByType('business')"><div class="feature-icon">⚡</div><h3>Fast for Business</h3><p>Quick search and reliable confirmation</p></div>
-      <div class="feature" onclick="filterByType('family')"><div class="feature-icon">👨‍👩‍👧‍👦</div><h3>Family Friendly</h3><p>Clear filters and transparent pricing</p></div>
-      <div class="feature" onclick="filterByType('luxury')"><div class="feature-icon">📍</div><h3>Event Ready</h3><p>Easy availability near venues</p></div>
     </div>
   </section>
 
@@ -137,7 +130,7 @@
         <option value="luxury">Luxury</option>
         <option value="event">Event</option>
       </select>
-      <input type="text" id="new-hotel-area" class="auth-input" placeholder="Area (e.g. GRA, NTA, DBS Road)">
+      <input type="text" id="new-hotel-area" class="auth-input" placeholder="Area">
       <input type="text" id="new-hotel-distance" class="auth-input" placeholder="Short location note">
       <textarea id="new-hotel-desc" class="auth-input" rows="3" placeholder="Short description"></textarea>
       <p class="form-label">Rooms & Prices</p>
@@ -159,7 +152,6 @@
         <label><input type="checkbox" value="Gym"> Gym</label>
         <label><input type="checkbox" value="Laundry"> Laundry</label>
       </div>
-      <p class="form-label">Hotel Image</p>
       <input type="url" id="new-hotel-image-url" class="auth-input" placeholder="Paste image URL">
       <input type="file" id="new-hotel-image-file" accept="image/*" class="auth-input">
       <img id="image-preview" alt="">
@@ -171,20 +163,8 @@
   <section id="about" class="section">
     <h2>About CN7</h2>
     <div class="about-grid">
-      <div class="card">
-        <h3>What we do</h3>
-        <p>CN7 helps guests find trusted hotels in Asaba and helps hotels receive booking requests without complicated software.</p>
-      </div>
-      <div class="card">
-        <h3>How it works</h3>
-        <ol class="how-list">
-          <li>Search by area</li>
-          <li>Compare hotels and rooms</li>
-          <li>Request a booking</li>
-          <li>Hotel confirms</li>
-          <li>Pay at the hotel</li>
-        </ol>
-      </div>
+      <div class="card"><h3>What we do</h3><p>CN7 helps guests find trusted hotels in Asaba and helps hotels receive booking requests.</p></div>
+      <div class="card"><h3>How it works</h3><ol class="how-list"><li>Search by area</li><li>Compare rooms</li><li>Request a booking</li><li>Hotel confirms</li><li>Pay at the hotel</li></ol></div>
     </div>
     <div class="card" style="margin-top:1.4rem;">
       <h3>Contact CN7</h3>
@@ -201,11 +181,21 @@
   </section>
 
   <section id="hotel-dashboard" class="section">
-    <h2 id="hotel-dashboard-title">Hotel Dashboard</h2>
-    <div class="card">
-      <h3>Incoming Bookings</h3>
-      <div id="booking-list"></div>
+    <h2 id="hotel-dashboard-title">My Hotel</h2>
+    <p id="owner-hotel-name" class="page-note"></p>
+    <div class="admin-stats">
+      <div class="stat"><span id="owner-arrivals">0</span><small>Arrivals today</small></div>
+      <div class="stat"><span id="owner-departures">0</span><small>Departures today</small></div>
+      <div class="stat"><span id="owner-staying">0</span><small>Guests in-house</small></div>
     </div>
+    <div class="admin-stats">
+      <div class="stat"><span id="owner-revenue">₦0</span><small>Confirmed revenue</small></div>
+      <div class="stat"><span id="owner-pending-count">0</span><small>Pending requests</small></div>
+      <div class="stat"><span id="owner-rooms">0</span><small>Rooms listed</small></div>
+    </div>
+    <div class="card" style="margin-bottom:1.4rem;"><h3>Ways to improve</h3><div id="owner-tips"></div></div>
+    <div class="card" style="margin-bottom:1.4rem;"><h3>Rooms / inventory</h3><div id="owner-inventory"></div></div>
+    <div class="card"><h3>Bookings</h3><div id="booking-list"></div></div>
   </section>
 
   <section id="admin" class="section">
