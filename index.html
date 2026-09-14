@@ -108,6 +108,8 @@
       <label><input type="checkbox" id="filter-parking"> Parking</label>
       <label><input type="checkbox" id="filter-gym"> Gym</label>
       <label><input type="checkbox" id="filter-laundry"> Laundry</label>
+      <label><input type="checkbox" id="filter-bar"> Bar</label>
+      <label><input type="checkbox" id="filter-lounge"> Lounge</label>
       <button class="btn-primary" onclick="applyFilters()">Apply Filters</button>
     </div>
     <div id="hotel-list" class="hotel-grid"></div>
@@ -119,8 +121,8 @@
   </section>
 
   <section id="list-hotel" class="section">
-    <h2>List Your Hotel on CN7</h2>
-    <p class="page-note">Submit your hotel for review. After approval, guests can find and book you.</p>
+    <h2 id="list-hotel-title">List Your Hotel on CN7</h2>
+    <p class="page-note" id="list-hotel-note">Submit your hotel for review. After approval, guests can find and book you.</p>
     <div class="card">
       <input type="text" id="new-hotel-name" class="auth-input" placeholder="Hotel Name">
       <select id="new-hotel-type" class="auth-input">
@@ -151,12 +153,14 @@
         <label><input type="checkbox" value="AC"> Air Conditioning</label>
         <label><input type="checkbox" value="Gym"> Gym</label>
         <label><input type="checkbox" value="Laundry"> Laundry</label>
+        <label><input type="checkbox" value="Bar"> Bar</label>
+        <label><input type="checkbox" value="Lounge"> Lounge</label>
       </div>
       <input type="url" id="new-hotel-image-url" class="auth-input" placeholder="Paste image URL">
       <input type="file" id="new-hotel-image-file" accept="image/*" class="auth-input">
       <img id="image-preview" alt="">
       <input type="text" id="new-hotel-contact" class="auth-input" placeholder="Contact name / phone">
-      <button class="btn-primary full" onclick="submitHotel()">Submit Hotel for Review</button>
+      <button class="btn-primary full" id="hotel-submit-btn" onclick="submitHotel()">Submit Hotel for Review</button>
     </div>
   </section>
 
