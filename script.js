@@ -70,6 +70,27 @@ function requireLogin() {
   setAuthMode('signin');
 }
 
+function togglePassword() {
+  const input = document.getElementById('auth-password');
+  const btn = document.querySelector('.eye-btn');
+  if (!input) return;
+  const hide = input.type === 'password';
+  input.type = hide ? 'text' : 'password';
+  if (btn) btn.textContent = hide ? 'Hide' : 'Show';
+}
+
+async function saveNewPassword() {
+  if (!db) return showToast('Supabase is not connected');
+  const password = document.getElementById('new-password').value;
+  if (!password || password.length < 6) return showToast('Password must be at least 6 characters');
+  const { error } = await db.auth.updateUser({ password });
+  if (error) return showToast(error.message);
+  const box = document.getElementById('reset-box');
+  if (box) box.style.display = 'none';
+  showToast('Password updated. Sign in with the new password.');
+  setAuthMode('signin');
+}
+
 function mapHotel(row) {
   const rooms = row.rooms || [];
   const prices = rooms.map(r => Number(r.price)).filter(n => !isNaN(n));
@@ -139,13 +160,17 @@ function closeModal(id) {
 }
 
 function toggleMenu() {
-  document.getElementById('nav-links').classList.toggle('open');
-  document.getElementById('hamburger').classList.toggle('active');
+  const links = document.getElementById('nav-links');
+  const ham = document.getElementById('hamburger');
+  if (links) links.classList.toggle('open');
+  if (ham) ham.classList.toggle('active');
 }
 
 function closeMenu() {
-  document.getElementById('nav-links').classList.remove('open');
-  document.getElementById('hamburger').classList.remove('active');
+  const links = document.getElementById('nav-links');
+  const ham = document.getElementById('hamburger');
+  if (links) links.classList.remove('open');
+  if (ham) ham.classList.remove('active');
 }
 
 function toggleAuth() {
@@ -200,22 +225,54 @@ async function handleAuth() {
     });
     if (error) return showToast(error.message);
     if (!data.user) return showToast('Check your email to finish signup');
-    await loadSessionUser();
+    await finishLogin(data.user);
     showToast(role === 'hotel_owner' ? 'Owner account created. Wait for admin approval.' : 'Welcome, ' + name.split(' ')[0]);
     return;
   }
 
-  const { error } = await db.auth.signInWithPassword({ email, password });
+  const { data, error } = await db.auth.signInWithPassword({ email, password });
   if (error) return showToast(error.message);
-  await loadSessionUser();
+  await finishLogin(data.user);
   showToast('Welcome back');
+}
+
+async function finishLogin(user) {
+  if (!user) {
+    lockApp();
+    return;
+  }
+
+  const meta = user.user_metadata || {};
+  let profile = null;
+  try {
+    const { data } = await db.from('profiles').select('*').eq('id', user.id).maybeSingle();
+    profile = data;
+  } catch (err) {
+    console.log('Profile load skipped', err);
+  }
+
+  currentUser = {
+    id: user.id,
+    name: (profile && profile.full_name) || meta.full_name || user.email,
+    phone: (profile && profile.phone) || meta.phone || '',
+    email: user.email,
+    role: (profile && profile.role) || meta.role || 'guest',
+    status: (profile && profile.status) || 'active'
+  };
+  localStorage.setItem('cn7_user', JSON.stringify(currentUser));
+  updateAuthUI();
+  unlockApp();
+  routeByRole();
+  console.log('Logged in as', currentUser);
 }
 
 async function handleForgotPassword() {
   if (!db) return showToast('Supabase is not connected');
   const email = document.getElementById('auth-email').value.trim();
   if (!email) return showToast('Type your email first');
-  const { error } = await db.auth.resetPasswordForEmail(email);
+  const { error } = await db.auth.resetPasswordForEmail(email, {
+    redirectTo: 'https://cn7technologies.github.io/CN7/'
+  });
   if (error) return showToast(error.message);
   showToast('Password reset email sent');
 }
@@ -237,9 +294,8 @@ async function loadSessionUser() {
     lockApp();
     return;
   }
-
-  const { data: sessionData } = await db.auth.getUser();
-  const user = sessionData && sessionData.user;
+  const { data } = await db.auth.getSession();
+  const user = data && data.session && data.session.user;
   if (!user) {
     currentUser = null;
     localStorage.removeItem('cn7_user');
@@ -247,22 +303,7 @@ async function loadSessionUser() {
     lockApp();
     return;
   }
-
-  const { data: profile } = await db.from('profiles').select('*').eq('id', user.id).single();
-  const meta = user.user_metadata || {};
-
-  currentUser = {
-    id: user.id,
-    name: (profile && profile.full_name) || meta.full_name || user.email,
-    phone: (profile && profile.phone) || meta.phone || '',
-    email: user.email,
-    role: (profile && profile.role) || meta.role || 'guest',
-    status: (profile && profile.status) || 'active'
-  };
-  localStorage.setItem('cn7_user', JSON.stringify(currentUser));
-  updateAuthUI();
-  unlockApp();
-  routeByRole();
+  await finishLogin(user);
 }
 
 function routeByRole() {
@@ -275,12 +316,10 @@ function routeByRole() {
     const title = document.getElementById('hotel-dashboard-title');
     if (title) title.textContent = 'Hotel Owner Dashboard';
     showSection('hotel-dashboard');
-    renderOwnerDashboard();
     return;
   }
   if (currentUser.role === 'admin') {
     showSection('admin');
-    updateAdmin();
     return;
   }
   showSection('home');
@@ -473,8 +512,8 @@ async function showHotelDetail(id) {
   if (!hotel) return;
   showSection('hotel-detail');
   const rooms = hotel.rooms || [{name:'Standard Room', price:hotel.price}];
-  const checkin = document.getElementById('checkin').value;
-  const checkout = document.getElementById('checkout').value;
+  const checkin = document.getElementById('checkin') ? document.getElementById('checkin').value : '';
+  const checkout = document.getElementById('checkout') ? document.getElementById('checkout').value : '';
   document.getElementById('detail-content').innerHTML = `
     <div class="detail-top">
       <img src="${hotel.image}" alt="${hotel.name}">
@@ -662,5 +701,9 @@ document.addEventListener('DOMContentLoaded', function() {
   setupImagePreview();
   const addBtn = document.getElementById('add-room-btn');
   if (addBtn) addBtn.addEventListener('click', addRoomField);
+  if (window.location.hash.indexOf('type=recovery') !== -1) {
+    const box = document.getElementById('reset-box');
+    if (box) box.style.display = 'block';
+  }
   loadSessionUser();
 });
