@@ -155,7 +155,7 @@ function fillHotelForm(hotel) {
   const note = document.getElementById('list-hotel-note');
   const btn = document.getElementById('hotel-submit-btn');
   if (title) title.textContent = 'Edit your hotel';
-  if (note) note.textContent = 'Update prices, rooms, amenities, and details. Guests will see the new information.';
+  if (note) note.textContent = 'Update prices, rooms, amenities, and details.';
   if (btn) btn.textContent = 'Save hotel changes';
 }
 
@@ -280,11 +280,6 @@ function updateAuthUI(){
 async function renderOwnerDashboard(){
   const list = document.getElementById('booking-list');
   if (!list || !currentUser) return;
-  if (currentUser.status === 'pending' && !db) {
-    setText('owner-hotel-name', 'Account waiting for admin approval');
-    list.innerHTML = '<button class="btn-primary" onclick="showSection(\'list-hotel\')">Add / update my hotel</button>';
-    return;
-  }
   if (!db) { list.innerHTML = '<p style="color:var(--muted)">Supabase is not connected.</p>'; return; }
   const { data: myHotels, error } = await db.from('hotels').select('*, rooms(*)').eq('owner_id', currentUser.id);
   if (error || !myHotels || !myHotels.length) {
@@ -322,18 +317,44 @@ async function renderOwnerDashboard(){
   const tips = [];
   if (!currentHotel.active || !currentHotel.verified) tips.push('Your listing is not live yet. Ask admin to approve it.');
   if (!rooms.length) tips.push('Add rooms and prices so guests can book.');
-  if (!(currentHotel.amenities || []).includes('Bar')) tips.push('Add Bar if you have one.');
-  if (!(currentHotel.amenities || []).includes('Lounge')) tips.push('Add Lounge if you have one.');
-  if (!(currentHotel.amenities || []).includes('Gym')) tips.push('Add Gym if you have one.');
-  if (!(currentHotel.amenities || []).includes('Laundry')) tips.push('Add Laundry if you offer it.');
-  if (pending) tips.push('Reply to pending requests the same day.');
-  if (!rows.length) tips.push('Share your CN7 listing. First bookings will appear here.');
-  if (!tips.length) tips.push('Keep photos and prices updated.');
+  if (pending) tips.push('Confirm or reject pending requests today.');
+  if (!rows.length) tips.push('Share your listing. Guest bookings will appear here.');
+  if (!tips.length) tips.push('Keep prices and amenities updated.');
   const tipBox = document.getElementById('owner-tips');
   if (tipBox) tipBox.innerHTML = tips.map(t => '<p>• ' + t + '</p>').join('');
   const inv = document.getElementById('owner-inventory');
-  if (inv) inv.innerHTML = rooms.length ? rooms.map(r => '<div class="room-card"><div><strong>' + r.name + '</strong><br>₦' + Number(r.price).toLocaleString() + ' / night</div></div>').join('') + '<button class="btn-primary" style="margin-top:1rem" onclick="editMyHotel()">Edit hotel, prices and amenities</button>' : '<p style="color:var(--muted)">No rooms listed.</p><button class="btn-primary" onclick="editMyHotel()">Edit hotel</button>';
-  list.innerHTML = (rows.length ? rows.map(b => '<div style="border:1px solid var(--border);padding:1rem;border-radius:10px;margin-bottom:1rem"><strong>' + (b.guest_name || 'Guest') + '</strong> · ' + (b.guest_phone || '') + '<br>' + (b.check_in || '') + ' to ' + (b.check_out || '') + '<br>₦' + Number(b.price || 0).toLocaleString() + ' · <span class="status ' + b.status + '">' + b.status + '</span></div>').join('') : '<p style="color:var(--muted)">No bookings yet.</p>') + '<button class="btn-primary" style="margin-top:1rem" onclick="editMyHotel()">Edit hotel, prices and amenities</button>';
+  if (inv) inv.innerHTML = rooms.length ? rooms.map(r => '<div class="room-card"><div><strong>' + r.name + '</strong><br>₦' + Number(r.price).toLocaleString() + ' / night</div></div>').join('') : '<p style="color:var(--muted)">No rooms listed.</p>';
+  list.innerHTML = (rows.length ? rows.map(b =>
+    '<div style="border:1px solid var(--border);padding:1rem;border-radius:10px;margin-bottom:1rem">' +
+    '<strong>' + (b.guest_name || 'Guest') + '</strong> · ' + (b.guest_phone || '') +
+    '<br>' + (b.room_name || '') +
+    '<br>' + (b.check_in || '') + ' to ' + (b.check_out || '') +
+    '<br>₦' + Number(b.price || 0).toLocaleString() +
+    ' · <span class="status ' + b.status + '">' + b.status + '</span>' +
+    (b.status === 'requested' || b.status === 'pending'
+      ? '<br><button class="btn-primary" style="margin-top:.7rem;padding:.4rem .8rem" onclick="confirmBooking(\'' + b.id + '\')">Confirm</button> ' +
+        '<button class="btn-cancel" onclick="rejectBooking(\'' + b.id + '\')">Reject</button>'
+      : '') +
+    '</div>'
+  ).join('') : '<p style="color:var(--muted)">No bookings yet.</p>') +
+  '<button class="btn-primary" style="margin-top:1rem" onclick="editMyHotel()">Edit hotel, prices and amenities</button>';
+}
+
+async function confirmBooking(id) {
+  if (!db) return showToast('Supabase is not connected');
+  const { error } = await db.from('bookings').update({ status: 'confirmed' }).eq('id', id);
+  if (error) return showToast(error.message);
+  showToast('Booking confirmed');
+  renderOwnerDashboard();
+}
+
+async function rejectBooking(id) {
+  if (!db) return showToast('Supabase is not connected');
+  if (!confirm('Reject this booking?')) return;
+  const { error } = await db.from('bookings').update({ status: 'rejected' }).eq('id', id);
+  if (error) return showToast(error.message);
+  showToast('Booking rejected');
+  renderOwnerDashboard();
 }
 
 function openHotelLogin(){ requireLogin(); }
@@ -372,14 +393,9 @@ async function applyFilters(){
   await refreshHotels();
   const type = document.getElementById('filter-type').value;
   const checks = [
-    ['filter-wifi', 'Wi-Fi'],
-    ['filter-pool', 'Pool'],
-    ['filter-breakfast', 'Breakfast'],
-    ['filter-parking', 'Parking'],
-    ['filter-gym', 'Gym'],
-    ['filter-laundry', 'Laundry'],
-    ['filter-bar', 'Bar'],
-    ['filter-lounge', 'Lounge']
+    ['filter-wifi', 'Wi-Fi'], ['filter-pool', 'Pool'], ['filter-breakfast', 'Breakfast'],
+    ['filter-parking', 'Parking'], ['filter-gym', 'Gym'], ['filter-laundry', 'Laundry'],
+    ['filter-bar', 'Bar'], ['filter-lounge', 'Lounge']
   ];
   renderHotels(hotels.filter(h => {
     if (type && h.type !== type) return false;
@@ -392,7 +408,7 @@ async function applyFilters(){
 function renderHotels(list){
   const container = document.getElementById('hotel-list');
   if (!container) return;
-  container.innerHTML = (list || []).map(h => '<div class="hotel-card" onclick="showHotelDetail(\'' + h.id + '\')"><img src="' + h.image + '" alt="' + h.name + '"><div class="hotel-card-body"><h3>' + h.name + '</h3><div class="meta">📍 ' + (h.area || 'Asaba') + '</div><div class="price">From ₦' + Number(h.price).toLocaleString() + '</div><div class="amenities">' + (h.amenities||[]).map(a => '<span class="amenity">' + a + '</span>').join('') + '</div></div></div>').join('');
+  container.innerHTML = (list || []).map(h => '<div class="hotel-card" onclick="showHotelDetail(\'' + h.id + '\')"><img src="' + h.image + '" alt="' + h.name + '"><div class="hotel-card-body"><h3>' + h.name + '</h3><div class="meta">📍 ' + (h.area || 'Asaba') + '</div><div class="price">From ₦' + Number(h.price).toLocaleString() + '</div></div></div>').join('');
 }
 async function showHotelDetail(id){
   if (!currentUser) return requireLogin();
@@ -401,20 +417,43 @@ async function showHotelDetail(id){
   if (!hotel) return;
   showSection('hotel-detail');
   const rooms = hotel.rooms || [{name:'Standard Room', price:hotel.price}];
-  document.getElementById('detail-content').innerHTML = '<h2>' + hotel.name + '</h2><p>' + (hotel.description || '') + '</p><div class="amenities">' + (hotel.amenities||[]).map(a => '<span class="amenity">' + a + '</span>').join('') + '</div>' + rooms.map((r,i) => '<div class="room-card"><div><strong>' + r.name + '</strong><br>₦' + Number(r.price).toLocaleString() + '</div><button class="btn-primary" onclick="bookRoom(\'' + hotel.id + '\',' + i + ')">Request Booking</button></div>').join('');
+  document.getElementById('detail-content').innerHTML = '<h2>' + hotel.name + '</h2><p>' + (hotel.description || '') + '</p>' + rooms.map((r,i) => '<div class="room-card"><div><strong>' + r.name + '</strong><br>₦' + Number(r.price).toLocaleString() + '</div><button class="btn-primary" onclick="bookRoom(\'' + hotel.id + '\',' + i + ')">Request Booking</button></div>').join('');
 }
-async function bookRoom(hotelId, roomIndex){
+
+async function bookRoom(hotelId, roomIndex) {
   if (!currentUser) return requireLogin();
   if (currentUser.role !== 'guest') return showToast('Only guests can book');
   await refreshHotels();
   const hotel = hotels.find(h => String(h.id) === String(hotelId));
-  const rooms = hotel.rooms || [{name:'Standard Room', price:hotel.price}];
+  if (!hotel) return showToast('Hotel not found');
+  const rooms = hotel.rooms || [{ name: 'Standard Room', price: hotel.price }];
   const room = rooms[roomIndex];
-  bookings.push({id:Date.now(), hotelId:hotel.id, hotelName:hotel.name, room:room.name, price:room.price, guestName:currentUser.name, phone:currentUser.phone, status:'requested', date:new Date().toLocaleString()});
+  const checkin = document.getElementById('checkin') ? document.getElementById('checkin').value : '';
+  const checkout = document.getElementById('checkout') ? document.getElementById('checkout').value : '';
+  if (!checkin || !checkout) return showToast('Choose check-in and check-out dates first');
+  if (!db) return showToast('Supabase is not connected');
+  const { error } = await db.from('bookings').insert({
+    hotel_id: hotel.id,
+    guest_id: currentUser.id,
+    guest_name: currentUser.name,
+    guest_phone: currentUser.phone || '',
+    room_name: room.name,
+    check_in: checkin,
+    check_out: checkout,
+    price: Number(room.price),
+    status: 'requested'
+  });
+  if (error) return showToast(error.message);
+  bookings.push({
+    id: Date.now(), hotelId: hotel.id, hotelName: hotel.name, room: room.name,
+    price: room.price, guestName: currentUser.name, phone: currentUser.phone,
+    status: 'requested', date: new Date().toLocaleString()
+  });
   localStorage.setItem('cn7_bookings', JSON.stringify(bookings));
   showToast('Booking requested for ' + hotel.name);
   showSection('my-bookings');
 }
+
 function renderMyBookings(){
   const list = document.getElementById('my-bookings-list');
   if (!list) return;
@@ -442,7 +481,6 @@ function setupImagePreview(){
     reader.readAsDataURL(file);
   });
 }
-
 function readHotelForm() {
   const name = document.getElementById('new-hotel-name').value.trim();
   const type = document.getElementById('new-hotel-type').value;
@@ -460,7 +498,6 @@ function readHotelForm() {
   });
   return { name, type, area, distance, description, contact, imageUrl, amenities, rooms };
 }
-
 async function submitHotel(){
   if (!currentUser || currentUser.role !== 'hotel_owner') return showToast('Sign in as a hotel owner first');
   const form = readHotelForm();
@@ -469,7 +506,6 @@ async function submitHotel(){
   }
   const image = form.imageUrl || (currentHotel && currentHotel.image) || 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800';
   const hotelId = editingHotelId || (currentHotel && currentHotel.id);
-
   if (hotelId) {
     const { error } = await db.from('hotels').update({
       name: form.name, type: form.type, area: form.area, distance: form.distance,
@@ -480,11 +516,9 @@ async function submitHotel(){
     const { error: roomErr } = await db.from('rooms').insert(form.rooms.map(r => ({ hotel_id: hotelId, name: r.name, price: r.price })));
     if (roomErr) return showToast(roomErr.message);
     showToast('Hotel updated');
-    editingHotelId = hotelId;
     showSection('hotel-dashboard');
     return;
   }
-
   const code = form.name.replace(/[^A-Za-z]/g, '').slice(0, 5).toUpperCase() || 'HOTEL';
   const { data: hotel, error } = await db.from('hotels').insert({
     owner_id: currentUser.id, name: form.name, code, type: form.type, area: form.area,
@@ -510,16 +544,15 @@ async function updateAdmin() {
     if (liveRows) liveHotels = liveRows;
   }
   total.textContent = bookings.length;
-  const confirmed = bookings.filter(b => b.status === 'confirmed').length;
-  document.getElementById('confirmed-rate').textContent = (bookings.length ? Math.round(confirmed / bookings.length * 100) : 0) + '%';
+  document.getElementById('confirmed-rate').textContent = '0%';
   document.getElementById('active-hotels').textContent = liveHotels.length;
   document.getElementById('pending-hotels').innerHTML = pending.length
     ? pending.map(h => '<div style="border:1px solid var(--border);padding:1rem;border-radius:10px;margin-bottom:1rem"><strong>' + h.name + '</strong> · ' + (h.type || '') + ' · ' + (h.area || 'Asaba') + '<br><button class="btn-primary" style="margin-top:.8rem" onclick="approveHotel(\'' + h.id + '\')">Approve</button> <button class="btn-cancel" onclick="rejectHotelDb(\'' + h.id + '\')">Reject</button></div>').join('')
     : '<p style="color:var(--muted)">No pending applications.</p>';
   document.getElementById('active-hotels-list').innerHTML = liveHotels.length
-    ? liveHotels.map(h => '<div style="padding:.6rem 0;border-bottom:1px solid var(--border)">' + h.name + ' · ' + (h.area || 'Asaba') + '</div>').join('')
+    ? liveHotels.map(h => '<div style="padding:.6rem 0;border-bottom:1px solid var(--border)">' + h.name + '</div>').join('')
     : '<p style="color:var(--muted)">No active hotels.</p>';
-  document.getElementById('admin-activity').innerHTML = bookings.slice(-8).reverse().map(b => '<div style="padding:.6rem 0;border-bottom:1px solid var(--border)">' + b.guestName + ' → ' + b.hotelName + ' <span class="status ' + b.status + '">' + b.status + '</span></div>').join('') || '<p style="color:var(--muted)">No activity yet.</p>';
+  document.getElementById('admin-activity').innerHTML = '<p style="color:var(--muted)">No activity yet.</p>';
 }
 
 async function approveHotel(id) {
