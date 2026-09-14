@@ -7,7 +7,6 @@ const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_1MrV-CKv6b6umE6XcxrlSQ_mdgGPTSM
 let db = null;
 if (window.supabase && typeof window.supabase.createClient === 'function') {
   db = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
-  console.log('CN7 Supabase client connected');
 }
 if (db) {
   db.auth.onAuthStateChange(function(event) {
@@ -18,10 +17,10 @@ if (db) {
 const defaultHotels = [
   {id:1,name:"Afro View Hotel",code:"AFRO",type:"business",price:28000,rating:4.6,reviews:128,area:"GRA",distance:"5 min from city centre",amenities:["Wi-Fi","Parking","Breakfast","Pool"],image:"https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800",description:"Modern business hotel.",rooms:[{name:"Standard Room",price:25000},{name:"Deluxe Room",price:28000}]},
   {id:2,name:"Delta Pearl Guest House",code:"DELTA",type:"family",price:22000,rating:4.3,reviews:86,area:"NTA",distance:"Near NTA Asaba",amenities:["Wi-Fi","Pool","Breakfast","Parking"],image:"https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800",description:"Family guest house.",rooms:[{name:"Family Room",price:22000}]},
-  {id:3,name:"Asaba Grand Suites",code:"GRAND",type:"luxury",price:55000,rating:4.8,reviews:204,area:"Mariam Babangida",distance:"Near venues",amenities:["Wi-Fi","Pool","Breakfast","Restaurant"],image:"https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=800",description:"Premium suites.",rooms:[{name:"Deluxe Suite",price:55000}]},
+  {id:3,name:"Asaba Grand Suites",code:"GRAND",type:"luxury",price:55000,rating:4.8,reviews:204,area:"Mariam Babangida",distance:"Near venues",amenities:["Wi-Fi","Pool","Breakfast"],image:"https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=800",description:"Premium suites.",rooms:[{name:"Deluxe Suite",price:55000}]},
   {id:4,name:"DBS Place Hotel",code:"DBS",type:"family",price:24000,rating:4.4,reviews:71,area:"DBS Road",distance:"Along DBS Road",amenities:["Wi-Fi","Breakfast","Parking"],image:"https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=800",description:"Stay on DBS Road.",rooms:[{name:"Classic Room",price:20000}]},
   {id:5,name:"Okpanam Comfort Lodge",code:"OKPA",type:"family",price:18000,rating:4.2,reviews:54,area:"Okpanam",distance:"On Okpanam Road",amenities:["Wi-Fi","Parking"],image:"https://images.unsplash.com/photo-1564501049412-61c2a308c1aa?w=800",description:"Quiet lodge.",rooms:[{name:"Standard Room",price:16000}]},
-  {id:6,name:"Summit View Inn",code:"SUMIT",type:"business",price:30000,rating:4.5,reviews:97,area:"Summit",distance:"Close to Summit",amenities:["Wi-Fi","Breakfast","Parking"],image:"https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=800",description:"Business inn.",rooms:[{name:"Classic Room",price:26000}]}
+  {id:6,name:"Summit View Inn",code:"SUMIT",type:"business",price:30000,rating:4.5,reviews:97,area:"Summit",distance:"Close to Summit",amenities:["Wi-Fi","Breakfast"],image:"https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=800",description:"Business inn.",rooms:[{name:"Classic Room",price:26000}]}
 ];
 
 const PRIVATE_SECTIONS = ['hotels','hotel-detail','list-hotel','my-bookings','hotel-dashboard','admin'];
@@ -50,10 +49,7 @@ function showToast(msg){
 }
 function setNav(id, show){ const el = document.getElementById(id); if (el) el.style.display = show ? '' : 'none'; }
 function lockApp(){ document.body.classList.add('locked'); }
-function unlockApp(){
-  if (pendingPasswordReset || startedAsRecovery) return;
-  document.body.classList.remove('locked');
-}
+function unlockApp(){ if (pendingPasswordReset || startedAsRecovery) return; document.body.classList.remove('locked'); }
 function requireLogin(){ lockApp(); setAuthMode('signin'); }
 function showResetBox(){
   pendingPasswordReset = true;
@@ -133,6 +129,8 @@ function setAuthMode(mode){
   if (submit) submit.textContent = isSignup ? 'Create account' : 'Sign In';
 }
 function toggleAuthMode(){ setAuthMode(authMode === 'signin' ? 'signup' : 'signin'); }
+function todayISO(){ return new Date().toISOString().slice(0, 10); }
+function setText(id, value){ const el = document.getElementById(id); if (el) el.textContent = value; }
 
 async function handleAuth(){
   if (!db) return showToast('Supabase is not connected');
@@ -214,11 +212,7 @@ async function loadSessionUser(){
   if (!db) { currentUser = null; updateAuthUI(); lockApp(); return; }
   const { data } = await db.auth.getSession();
   const user = data && data.session && data.session.user;
-  if (pendingPasswordReset || startedAsRecovery) {
-    if (user) currentUser = { id: user.id, name: user.email, email: user.email, role: 'guest', status: 'active', phone: '' };
-    showResetBox();
-    return;
-  }
+  if (pendingPasswordReset || startedAsRecovery) { showResetBox(); return; }
   if (!user) { currentUser = null; localStorage.removeItem('cn7_user'); updateAuthUI(); lockApp(); return; }
   await finishLogin(user);
 }
@@ -229,7 +223,7 @@ function routeByRole(){
   unlockApp();
   if (currentUser.role === 'hotel_owner') {
     const title = document.getElementById('hotel-dashboard-title');
-    if (title) title.textContent = 'Hotel Owner Dashboard';
+    if (title) title.textContent = 'My Hotel';
     showSection('hotel-dashboard');
     return;
   }
@@ -242,7 +236,7 @@ function updateAuthUI(){
   if (btn) btn.textContent = currentUser ? ('Hi, ' + String(currentUser.name).split(' ')[0]) : 'Sign In';
   const role = currentUser && currentUser.role;
   const loggedIn = !!currentUser;
-  setNav('nav-home', loggedIn);
+  setNav('nav-home', loggedIn && role !== 'hotel_owner');
   setNav('nav-hotels', loggedIn && role === 'guest');
   setNav('nav-list-hotel', loggedIn && role === 'hotel_owner');
   setNav('nav-owner', loggedIn && role === 'hotel_owner');
@@ -256,19 +250,57 @@ async function renderOwnerDashboard(){
   const list = document.getElementById('booking-list');
   if (!list || !currentUser) return;
   if (currentUser.status === 'pending') {
-    list.innerHTML = '<p><strong>Your owner account is waiting for admin approval.</strong></p><p style="color:var(--muted);margin-top:.6rem">You can add your hotel now.</p><button class="btn-primary" style="margin-top:1rem" onclick="showSection(\'list-hotel\')">Add / update my hotel</button>';
+    setText('owner-hotel-name', 'Account waiting for admin approval');
+    setText('owner-arrivals', '0'); setText('owner-departures', '0'); setText('owner-staying', '0');
+    setText('owner-revenue', '₦0'); setText('owner-pending-count', '0'); setText('owner-rooms', '0');
+    const tips = document.getElementById('owner-tips');
+    if (tips) tips.innerHTML = '<p>Submit your hotel so guests can find you after approval.</p>';
+    const inv = document.getElementById('owner-inventory');
+    if (inv) inv.innerHTML = '<p style="color:var(--muted)">No rooms yet.</p>';
+    list.innerHTML = '<button class="btn-primary" onclick="showSection(\'list-hotel\')">Add / update my hotel</button>';
     return;
   }
   if (!db) { list.innerHTML = '<p style="color:var(--muted)">Supabase is not connected.</p>'; return; }
   const { data: myHotels, error } = await db.from('hotels').select('*, rooms(*)').eq('owner_id', currentUser.id);
   if (error || !myHotels || !myHotels.length) {
-    list.innerHTML = '<p>No hotel listed yet.</p><button class="btn-primary" style="margin-top:1rem" onclick="showSection(\'list-hotel\')">List my hotel</button>';
+    setText('owner-hotel-name', 'No hotel listed yet');
+    list.innerHTML = '<button class="btn-primary" onclick="showSection(\'list-hotel\')">List my hotel</button>';
     return;
   }
   currentHotel = mapHotel(myHotels[0]);
+  const rooms = currentHotel.rooms || [];
+  const today = todayISO();
   const { data: hotelBookings } = await db.from('bookings').select('*').eq('hotel_id', currentHotel.id).order('created_at', { ascending: false });
   const rows = hotelBookings || [];
-  list.innerHTML = '<p><strong>' + currentHotel.name + '</strong></p><button class="btn-primary" onclick="showSection(\'list-hotel\')">Manage hotel</button><h3 style="margin:1.2rem 0 .7rem">Incoming bookings</h3>' + (rows.length ? rows.map(b => '<div style="border:1px solid var(--border);padding:1rem;border-radius:10px;margin-bottom:1rem"><strong>' + b.guest_name + '</strong><br>₦' + Number(b.price).toLocaleString() + ' · <span class="status ' + b.status + '">' + b.status + '</span></div>').join('') : '<p style="color:var(--muted)">No bookings yet.</p>');
+  const arrivals = rows.filter(b => String(b.check_in || '').slice(0, 10) === today && b.status !== 'rejected').length;
+  const departures = rows.filter(b => String(b.check_out || '').slice(0, 10) === today && b.status !== 'rejected').length;
+  const staying = rows.filter(b => {
+    const inDate = String(b.check_in || '').slice(0, 10);
+    const outDate = String(b.check_out || '').slice(0, 10);
+    return b.status === 'confirmed' && inDate <= today && outDate > today;
+  }).length;
+  const pending = rows.filter(b => b.status === 'requested' || b.status === 'pending').length;
+  const revenue = rows.filter(b => b.status === 'confirmed').reduce((sum, b) => sum + Number(b.price || 0), 0);
+  setText('owner-hotel-name', currentHotel.name + ' · ' + (currentHotel.active && currentHotel.verified ? 'Live' : 'Waiting for approval'));
+  setText('owner-arrivals', arrivals);
+  setText('owner-departures', departures);
+  setText('owner-staying', staying);
+  setText('owner-revenue', '₦' + revenue.toLocaleString());
+  setText('owner-pending-count', pending);
+  setText('owner-rooms', rooms.length);
+  const tips = [];
+  if (!currentHotel.active || !currentHotel.verified) tips.push('Your listing is not live yet. Ask admin to approve it.');
+  if (!rooms.length) tips.push('Add rooms and prices so guests can book.');
+  if (!(currentHotel.amenities || []).includes('Gym')) tips.push('Add Gym if you have one.');
+  if (!(currentHotel.amenities || []).includes('Laundry')) tips.push('Add Laundry if you offer it.');
+  if (pending) tips.push('Reply to pending requests the same day.');
+  if (!rows.length) tips.push('Share your CN7 listing. First bookings will appear here.');
+  if (!tips.length) tips.push('Keep photos and prices updated.');
+  const tipBox = document.getElementById('owner-tips');
+  if (tipBox) tipBox.innerHTML = tips.map(t => '<p>• ' + t + '</p>').join('');
+  const inv = document.getElementById('owner-inventory');
+  if (inv) inv.innerHTML = rooms.length ? rooms.map(r => '<div class="room-card"><div><strong>' + r.name + '</strong><br>₦' + Number(r.price).toLocaleString() + ' / night</div></div>').join('') : '<p style="color:var(--muted)">No rooms listed.</p>';
+  list.innerHTML = rows.length ? rows.map(b => '<div style="border:1px solid var(--border);padding:1rem;border-radius:10px;margin-bottom:1rem"><strong>' + (b.guest_name || 'Guest') + '</strong> · ' + (b.guest_phone || '') + '<br>' + (b.check_in || '') + ' to ' + (b.check_out || '') + '<br>₦' + Number(b.price || 0).toLocaleString() + ' · <span class="status ' + b.status + '">' + b.status + '</span></div>').join('') : '<p style="color:var(--muted)">No bookings yet.</p>';
 }
 
 function openHotelLogin(){ requireLogin(); }
@@ -279,8 +311,8 @@ function handleAdminLogin(){ showToast('Use an admin account to sign in'); }
 async function showSection(id){
   if (pendingPasswordReset || startedAsRecovery) { showResetBox(); return; }
   if (!currentUser && PRIVATE_SECTIONS.includes(id)) { requireLogin(); return; }
-  if (currentUser && currentUser.role === 'hotel_owner' && (id === 'hotels' || id === 'hotel-detail' || id === 'my-bookings' || id === 'admin')) { id = 'hotel-dashboard'; }
-  if (currentUser && currentUser.role === 'guest' && (id === 'hotel-dashboard' || id === 'admin' || id === 'list-hotel')) { id = 'home'; }
+  if (currentUser && currentUser.role === 'hotel_owner' && (id === 'home' || id === 'hotels' || id === 'hotel-detail' || id === 'my-bookings' || id === 'admin')) id = 'hotel-dashboard';
+  if (currentUser && currentUser.role === 'guest' && (id === 'hotel-dashboard' || id === 'admin' || id === 'list-hotel')) id = 'home';
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   const section = document.getElementById(id);
   if (!section) return;
@@ -327,7 +359,7 @@ async function filterByType(type){ if (!currentUser) return requireLogin(); awai
 function renderHotels(list){
   const container = document.getElementById('hotel-list');
   if (!container) return;
-  container.innerHTML = (list || []).map(h => '<div class="hotel-card" onclick="showHotelDetail(' + h.id + ')"><img src="' + h.image + '" alt="' + h.name + '"><div class="hotel-card-body"><h3>' + h.name + '</h3><div class="price">From ₦' + Number(h.price).toLocaleString() + '</div></div></div>').join('');
+  container.innerHTML = (list || []).map(h => '<div class="hotel-card" onclick="showHotelDetail(' + h.id + ')"><img src="' + h.image + '" alt="' + h.name + '"><div class="hotel-card-body"><h3>' + h.name + '</h3><div class="meta">📍 ' + (h.area || 'Asaba') + '</div><div class="price">From ₦' + Number(h.price).toLocaleString() + '</div></div></div>').join('');
 }
 async function showHotelDetail(id){
   if (!currentUser) return requireLogin();
@@ -336,7 +368,7 @@ async function showHotelDetail(id){
   if (!hotel) return;
   showSection('hotel-detail');
   const rooms = hotel.rooms || [{name:'Standard Room', price:hotel.price}];
-  document.getElementById('detail-content').innerHTML = '<h2>' + hotel.name + '</h2>' + rooms.map((r,i) => '<div class="room-card"><strong>' + r.name + '</strong><button class="btn-primary" onclick="bookRoom(' + hotel.id + ',' + i + ')">Request Booking</button></div>').join('');
+  document.getElementById('detail-content').innerHTML = '<h2>' + hotel.name + '</h2><p>' + (hotel.description || '') + '</p>' + rooms.map((r,i) => '<div class="room-card"><div><strong>' + r.name + '</strong><br>₦' + Number(r.price).toLocaleString() + '</div><button class="btn-primary" onclick="bookRoom(' + hotel.id + ',' + i + ')">Request Booking</button></div>').join('');
 }
 async function bookRoom(hotelId, roomIndex){
   if (!currentUser) return requireLogin();
@@ -424,7 +456,7 @@ function updateAdmin(){
   total.textContent = bookings.length;
   document.getElementById('confirmed-rate').textContent = '0%';
   document.getElementById('active-hotels').textContent = hotels.length;
-  document.getElementById('pending-hotels').innerHTML = pendingHotels.length ? pendingHotels.map(h => '<div><strong>' + h.name + '</strong><button onclick="approveHotel(' + h.id + ')">Approve</button></div>').join('') : '<p style="color:var(--muted)">No pending applications.</p>';
+  document.getElementById('pending-hotels').innerHTML = pendingHotels.length ? pendingHotels.map(h => '<div><strong>' + h.name + '</strong> <button class="btn-primary" onclick="approveHotel(' + h.id + ')">Approve</button></div>').join('') : '<p style="color:var(--muted)">No pending applications.</p>';
   document.getElementById('active-hotels-list').innerHTML = hotels.map(h => '<div>' + h.name + '</div>').join('') || '<p style="color:var(--muted)">No active hotels.</p>';
   document.getElementById('admin-activity').innerHTML = '<p style="color:var(--muted)">No activity yet.</p>';
 }
