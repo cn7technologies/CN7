@@ -27,12 +27,12 @@ const PRIVATE_SECTIONS = ['hotels','hotel-detail','list-hotel','my-bookings','ho
 let extraHotels = JSON.parse(localStorage.getItem('cn7_extra_hotels') || '[]');
 let disabledHotels = JSON.parse(localStorage.getItem('cn7_disabled_hotels') || '[]');
 let hotels = [];
-let pendingHotels = JSON.parse(localStorage.getItem('cn7_pending_hotels') || '[]');
 let bookings = JSON.parse(localStorage.getItem('cn7_bookings') || '[]');
 let currentUser = null;
 let currentHotel = null;
 let uploadedImage = '';
 let authMode = 'signin';
+let editingHotelId = null;
 
 function pageHash(){ return window.location.hash || ''; }
 function isRecoveryLink(){ return startedAsRecovery || pendingPasswordReset || pageHash().indexOf('type=recovery') !== -1; }
@@ -132,6 +132,41 @@ function toggleAuthMode(){ setAuthMode(authMode === 'signin' ? 'signup' : 'signi
 function todayISO(){ return new Date().toISOString().slice(0, 10); }
 function setText(id, value){ const el = document.getElementById(id); if (el) el.textContent = value; }
 
+function fillHotelForm(hotel) {
+  if (!hotel) return;
+  document.getElementById('new-hotel-name').value = hotel.name || '';
+  document.getElementById('new-hotel-type').value = hotel.type || '';
+  document.getElementById('new-hotel-area').value = hotel.area || '';
+  document.getElementById('new-hotel-distance').value = hotel.distance || '';
+  document.getElementById('new-hotel-desc').value = hotel.description || '';
+  document.getElementById('new-hotel-image-url').value = hotel.image || '';
+  document.querySelectorAll('.amenity-checks input').forEach(box => {
+    box.checked = (hotel.amenities || []).includes(box.value);
+  });
+  const box = document.getElementById('room-fields');
+  box.innerHTML = '';
+  (hotel.rooms && hotel.rooms.length ? hotel.rooms : [{name:'Classic Room', price:''}]).forEach(r => {
+    const row = document.createElement('div');
+    row.className = 'room-row';
+    row.innerHTML = '<input type="text" class="auth-input room-name" value="' + (r.name || '') + '"><input type="number" class="auth-input room-price" value="' + (r.price || '') + '">';
+    box.appendChild(row);
+  });
+  const title = document.getElementById('list-hotel-title');
+  const note = document.getElementById('list-hotel-note');
+  const btn = document.getElementById('hotel-submit-btn');
+  if (title) title.textContent = 'Edit your hotel';
+  if (note) note.textContent = 'Update prices, rooms, amenities, and details. Guests will see the new information.';
+  if (btn) btn.textContent = 'Save hotel changes';
+}
+
+function editMyHotel() {
+  if (!currentHotel) return showSection('list-hotel');
+  editingHotelId = currentHotel.id;
+  fillHotelForm(currentHotel);
+  showSection('list-hotel');
+  showToast('Update the details, then save');
+}
+
 async function handleAuth(){
   if (!db) return showToast('Supabase is not connected');
   if (pendingPasswordReset || startedAsRecovery) return showToast('Set your new password first');
@@ -193,6 +228,7 @@ async function signOutUser(){
   if (db) await db.auth.signOut();
   currentUser = null;
   currentHotel = null;
+  editingHotelId = null;
   localStorage.removeItem('cn7_user');
   updateAuthUI();
   if (pendingPasswordReset || startedAsRecovery) { showResetBox(); return; }
@@ -221,14 +257,8 @@ function routeByRole(){
   if (pendingPasswordReset || startedAsRecovery) { showResetBox(); return; }
   if (!currentUser) { lockApp(); return; }
   unlockApp();
-  if (currentUser.role === 'hotel_owner') {
-    showSection('hotel-dashboard');
-    return;
-  }
-  if (currentUser.role === 'admin') {
-    showSection('admin');
-    return;
-  }
+  if (currentUser.role === 'hotel_owner') { showSection('hotel-dashboard'); return; }
+  if (currentUser.role === 'admin') { showSection('admin'); return; }
   showSection('home');
 }
 
@@ -250,14 +280,8 @@ function updateAuthUI(){
 async function renderOwnerDashboard(){
   const list = document.getElementById('booking-list');
   if (!list || !currentUser) return;
-  if (currentUser.status === 'pending') {
+  if (currentUser.status === 'pending' && !db) {
     setText('owner-hotel-name', 'Account waiting for admin approval');
-    setText('owner-arrivals', '0'); setText('owner-departures', '0'); setText('owner-staying', '0');
-    setText('owner-revenue', '₦0'); setText('owner-pending-count', '0'); setText('owner-rooms', '0');
-    const tips = document.getElementById('owner-tips');
-    if (tips) tips.innerHTML = '<p>Submit your hotel so guests can find you after approval.</p>';
-    const inv = document.getElementById('owner-inventory');
-    if (inv) inv.innerHTML = '<p style="color:var(--muted)">No rooms yet.</p>';
     list.innerHTML = '<button class="btn-primary" onclick="showSection(\'list-hotel\')">Add / update my hotel</button>';
     return;
   }
@@ -265,6 +289,12 @@ async function renderOwnerDashboard(){
   const { data: myHotels, error } = await db.from('hotels').select('*, rooms(*)').eq('owner_id', currentUser.id);
   if (error || !myHotels || !myHotels.length) {
     setText('owner-hotel-name', 'No hotel listed yet');
+    setText('owner-arrivals', '0'); setText('owner-departures', '0'); setText('owner-staying', '0');
+    setText('owner-revenue', '₦0'); setText('owner-pending-count', '0'); setText('owner-rooms', '0');
+    const tips = document.getElementById('owner-tips');
+    if (tips) tips.innerHTML = '<p>Submit your hotel so guests can find you after approval.</p>';
+    const inv = document.getElementById('owner-inventory');
+    if (inv) inv.innerHTML = '<p style="color:var(--muted)">No rooms yet.</p>';
     list.innerHTML = '<button class="btn-primary" onclick="showSection(\'list-hotel\')">List my hotel</button>';
     return;
   }
@@ -292,6 +322,8 @@ async function renderOwnerDashboard(){
   const tips = [];
   if (!currentHotel.active || !currentHotel.verified) tips.push('Your listing is not live yet. Ask admin to approve it.');
   if (!rooms.length) tips.push('Add rooms and prices so guests can book.');
+  if (!(currentHotel.amenities || []).includes('Bar')) tips.push('Add Bar if you have one.');
+  if (!(currentHotel.amenities || []).includes('Lounge')) tips.push('Add Lounge if you have one.');
   if (!(currentHotel.amenities || []).includes('Gym')) tips.push('Add Gym if you have one.');
   if (!(currentHotel.amenities || []).includes('Laundry')) tips.push('Add Laundry if you offer it.');
   if (pending) tips.push('Reply to pending requests the same day.');
@@ -300,8 +332,8 @@ async function renderOwnerDashboard(){
   const tipBox = document.getElementById('owner-tips');
   if (tipBox) tipBox.innerHTML = tips.map(t => '<p>• ' + t + '</p>').join('');
   const inv = document.getElementById('owner-inventory');
-  if (inv) inv.innerHTML = rooms.length ? rooms.map(r => '<div class="room-card"><div><strong>' + r.name + '</strong><br>₦' + Number(r.price).toLocaleString() + ' / night</div></div>').join('') : '<p style="color:var(--muted)">No rooms listed.</p>';
-  list.innerHTML = rows.length ? rows.map(b => '<div style="border:1px solid var(--border);padding:1rem;border-radius:10px;margin-bottom:1rem"><strong>' + (b.guest_name || 'Guest') + '</strong> · ' + (b.guest_phone || '') + '<br>' + (b.check_in || '') + ' to ' + (b.check_out || '') + '<br>₦' + Number(b.price || 0).toLocaleString() + ' · <span class="status ' + b.status + '">' + b.status + '</span></div>').join('') : '<p style="color:var(--muted)">No bookings yet.</p>';
+  if (inv) inv.innerHTML = rooms.length ? rooms.map(r => '<div class="room-card"><div><strong>' + r.name + '</strong><br>₦' + Number(r.price).toLocaleString() + ' / night</div></div>').join('') + '<button class="btn-primary" style="margin-top:1rem" onclick="editMyHotel()">Edit hotel, prices and amenities</button>' : '<p style="color:var(--muted)">No rooms listed.</p><button class="btn-primary" onclick="editMyHotel()">Edit hotel</button>';
+  list.innerHTML = (rows.length ? rows.map(b => '<div style="border:1px solid var(--border);padding:1rem;border-radius:10px;margin-bottom:1rem"><strong>' + (b.guest_name || 'Guest') + '</strong> · ' + (b.guest_phone || '') + '<br>' + (b.check_in || '') + ' to ' + (b.check_out || '') + '<br>₦' + Number(b.price || 0).toLocaleString() + ' · <span class="status ' + b.status + '">' + b.status + '</span></div>').join('') : '<p style="color:var(--muted)">No bookings yet.</p>') + '<button class="btn-primary" style="margin-top:1rem" onclick="editMyHotel()">Edit hotel, prices and amenities</button>';
 }
 
 function openHotelLogin(){ requireLogin(); }
@@ -339,27 +371,28 @@ async function searchHotels(){
 async function applyFilters(){
   await refreshHotels();
   const type = document.getElementById('filter-type').value;
-  const wifi = document.getElementById('filter-wifi') && document.getElementById('filter-wifi').checked;
-  const pool = document.getElementById('filter-pool') && document.getElementById('filter-pool').checked;
-  const breakfast = document.getElementById('filter-breakfast') && document.getElementById('filter-breakfast').checked;
-  const parking = document.getElementById('filter-parking') && document.getElementById('filter-parking').checked;
-  const gym = document.getElementById('filter-gym') && document.getElementById('filter-gym').checked;
-  const laundry = document.getElementById('filter-laundry') && document.getElementById('filter-laundry').checked;
+  const checks = [
+    ['filter-wifi', 'Wi-Fi'],
+    ['filter-pool', 'Pool'],
+    ['filter-breakfast', 'Breakfast'],
+    ['filter-parking', 'Parking'],
+    ['filter-gym', 'Gym'],
+    ['filter-laundry', 'Laundry'],
+    ['filter-bar', 'Bar'],
+    ['filter-lounge', 'Lounge']
+  ];
   renderHotels(hotels.filter(h => {
     if (type && h.type !== type) return false;
-    if (wifi && !(h.amenities||[]).includes('Wi-Fi')) return false;
-    if (pool && !(h.amenities||[]).includes('Pool')) return false;
-    if (breakfast && !(h.amenities||[]).includes('Breakfast')) return false;
-    if (parking && !(h.amenities||[]).includes('Parking')) return false;
-    if (gym && !(h.amenities||[]).includes('Gym')) return false;
-    if (laundry && !(h.amenities||[]).includes('Laundry')) return false;
-    return true;
+    return checks.every(([id, label]) => {
+      const el = document.getElementById(id);
+      return !(el && el.checked) || (h.amenities || []).includes(label);
+    });
   }));
 }
 function renderHotels(list){
   const container = document.getElementById('hotel-list');
   if (!container) return;
-  container.innerHTML = (list || []).map(h => '<div class="hotel-card" onclick="showHotelDetail(' + JSON.stringify(String(h.id)) + ')"><img src="' + h.image + '" alt="' + h.name + '"><div class="hotel-card-body"><h3>' + h.name + '</h3><div class="meta">📍 ' + (h.area || 'Asaba') + '</div><div class="price">From ₦' + Number(h.price).toLocaleString() + '</div></div></div>').join('');
+  container.innerHTML = (list || []).map(h => '<div class="hotel-card" onclick="showHotelDetail(\'' + h.id + '\')"><img src="' + h.image + '" alt="' + h.name + '"><div class="hotel-card-body"><h3>' + h.name + '</h3><div class="meta">📍 ' + (h.area || 'Asaba') + '</div><div class="price">From ₦' + Number(h.price).toLocaleString() + '</div><div class="amenities">' + (h.amenities||[]).map(a => '<span class="amenity">' + a + '</span>').join('') + '</div></div></div>').join('');
 }
 async function showHotelDetail(id){
   if (!currentUser) return requireLogin();
@@ -368,7 +401,7 @@ async function showHotelDetail(id){
   if (!hotel) return;
   showSection('hotel-detail');
   const rooms = hotel.rooms || [{name:'Standard Room', price:hotel.price}];
-  document.getElementById('detail-content').innerHTML = '<h2>' + hotel.name + '</h2><p>' + (hotel.description || '') + '</p>' + rooms.map((r,i) => '<div class="room-card"><div><strong>' + r.name + '</strong><br>₦' + Number(r.price).toLocaleString() + '</div><button class="btn-primary" onclick="bookRoom(\'' + hotel.id + '\',' + i + ')">Request Booking</button></div>').join('');
+  document.getElementById('detail-content').innerHTML = '<h2>' + hotel.name + '</h2><p>' + (hotel.description || '') + '</p><div class="amenities">' + (hotel.amenities||[]).map(a => '<span class="amenity">' + a + '</span>').join('') + '</div>' + rooms.map((r,i) => '<div class="room-card"><div><strong>' + r.name + '</strong><br>₦' + Number(r.price).toLocaleString() + '</div><button class="btn-primary" onclick="bookRoom(\'' + hotel.id + '\',' + i + ')">Request Booking</button></div>').join('');
 }
 async function bookRoom(hotelId, roomIndex){
   if (!currentUser) return requireLogin();
@@ -409,8 +442,8 @@ function setupImagePreview(){
     reader.readAsDataURL(file);
   });
 }
-async function submitHotel(){
-  if (!currentUser || currentUser.role !== 'hotel_owner') return showToast('Sign in as a hotel owner first');
+
+function readHotelForm() {
   const name = document.getElementById('new-hotel-name').value.trim();
   const type = document.getElementById('new-hotel-type').value;
   const area = document.getElementById('new-hotel-area').value.trim();
@@ -425,11 +458,41 @@ async function submitHotel(){
     const roomPrice = row.querySelector('.room-price').value;
     if (roomName && roomPrice) rooms.push({ name: roomName, price: Number(roomPrice) });
   });
-  if (!name || !type || !area || !distance || !description || !contact || !rooms.length) return showToast('Please fill all required fields');
-  const code = name.replace(/[^A-Za-z]/g, '').slice(0, 5).toUpperCase() || 'HOTEL';
-  const { data: hotel, error } = await db.from('hotels').insert({ owner_id: currentUser.id, name, code, type, area, distance, description, image_url: imageUrl || 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800', amenities, verified: false, active: false }).select('id').single();
+  return { name, type, area, distance, description, contact, imageUrl, amenities, rooms };
+}
+
+async function submitHotel(){
+  if (!currentUser || currentUser.role !== 'hotel_owner') return showToast('Sign in as a hotel owner first');
+  const form = readHotelForm();
+  if (!form.name || !form.type || !form.area || !form.distance || !form.description || !form.contact || !form.rooms.length) {
+    return showToast('Please fill all required fields');
+  }
+  const image = form.imageUrl || (currentHotel && currentHotel.image) || 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800';
+  const hotelId = editingHotelId || (currentHotel && currentHotel.id);
+
+  if (hotelId) {
+    const { error } = await db.from('hotels').update({
+      name: form.name, type: form.type, area: form.area, distance: form.distance,
+      description: form.description, image_url: image, amenities: form.amenities
+    }).eq('id', hotelId).eq('owner_id', currentUser.id);
+    if (error) return showToast(error.message);
+    await db.from('rooms').delete().eq('hotel_id', hotelId);
+    const { error: roomErr } = await db.from('rooms').insert(form.rooms.map(r => ({ hotel_id: hotelId, name: r.name, price: r.price })));
+    if (roomErr) return showToast(roomErr.message);
+    showToast('Hotel updated');
+    editingHotelId = hotelId;
+    showSection('hotel-dashboard');
+    return;
+  }
+
+  const code = form.name.replace(/[^A-Za-z]/g, '').slice(0, 5).toUpperCase() || 'HOTEL';
+  const { data: hotel, error } = await db.from('hotels').insert({
+    owner_id: currentUser.id, name: form.name, code, type: form.type, area: form.area,
+    distance: form.distance, description: form.description, image_url: image,
+    amenities: form.amenities, verified: false, active: false
+  }).select('id').single();
   if (error) return showToast(error.message);
-  const { error: roomErr } = await db.from('rooms').insert(rooms.map(r => ({ hotel_id: hotel.id, name: r.name, price: r.price })));
+  const { error: roomErr } = await db.from('rooms').insert(form.rooms.map(r => ({ hotel_id: hotel.id, name: r.name, price: r.price })));
   if (roomErr) return showToast(roomErr.message);
   showToast('Hotel saved. Waiting for admin approval.');
   showSection('hotel-dashboard');
